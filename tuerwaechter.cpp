@@ -1,46 +1,36 @@
+// Clock speed
+
+#ifndef F_CPU
+#define F_CPU 8000000
+#endif
+
+
 // Libraries
 
-#include <avr/io.h>			// In/Out
-#include <util/delay.h>		// Delay
-
-
-// Variables
-
-const int delay = 100;
-
-
-// I/O ports
-
-//DDRB &= ~(1 << PB4);					// PB 4 as input
-//DDRB &= ~(1 << PB5);					// PB 5 as input
-//DDRB |= (1 << PB6);						// PB 6 as output
-//DDRB |= (1 << PB7);						// PB 7 as output
-
-
-// I/O ports setup -> unnötig?
-
-//PORTB &= ~(1 << PB6);					// Low
-//PORTB &= ~(1 << PB7);					// Low
+#include <stdint.h>
+#include <avr/io.h>
+#include <util/delay.h>
 
 
 // Functions
 
-void blinkLeft (){
-	
-	// .. than blink sequence left
-	PORTB |= (1 << PB6);			// PB 6 on
-	_delay_ms(delay);				// Delay in ms
-	PORTB &= ~(1 << PB6);			// PB 6 off
-	_delay_ms(delay);				// Delay in ms
+void status (){
+	PORTB |= (1 << PB5);
+	_delay_ms (100);
+	PORTB &= ~(1 << PB5);
+	_delay_ms (100);
 }
-	
-void blinkRight(){
-	
-	// ... than blink sequence right
-	PORTB |= (1 << PB7);			// PB 7 on
-	_delay_ms(delay);				// Delay in ms
-	PORTB &= ~(1 << PB7);			// PB 7 off
-	_delay_ms(delay);				// Delay in ms
+
+void open (){
+	PORTB |= (1 << PB5);
+	_delay_ms (2000);
+	PORTB &= (1 << PB5);
+}
+
+void alarm (){
+	PORTB |= (1 << PB5);
+	_delay_ms (1000);
+	PORTB &= (1 << PB5);
 }
 
 
@@ -48,19 +38,13 @@ void blinkRight(){
 
 int main (void){
 
+	DDRB &= ~(1 << PB4);		// Pin PB4 as input - Button
+	DDRB |= (1 << PB5);			// Pin PB5 as output - LED
+	DDRB |= (1 << PB6);			// Pin PB6 as output - Buzzer
 
-DDRB |= (1 << PB6);						// PB 6 as output
-DDRB |= (1 << PB7);						// PB 7 as output
-
-	// Main loop
 	while (1){								// Infinite loop
-			
-		if (PINB & (1 << PB4)){				// If button PB4 pressed,...
-			blinkRight();
-		}
-		
-		if (PINB & (1 << PB5)){				// If button PB5 pressed,...
-			blinkLeft();
+		if (PINB & (1 << PB4)){				// If button PB4 pressed -> LOW ( Opener, For a closer you need !PINB )
+			status();
 		}
 	}
 }
