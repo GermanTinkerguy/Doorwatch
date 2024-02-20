@@ -1,27 +1,66 @@
-/*	Information
+// Libraries
 
-	- The AT90USB162 runs at 8 MHz
-	- The connections are possible on PB4 PB5 PB6 PB7
-	- All these ports use pull up resistors
-	- The At90USB162 runs with 3.3V
-	- The proprietary connector is connected to D+ & D- and can be used to power the circuit
+#include <avr/io.h>			// In/Out
+#include <util/delay.h>		// Delay
 
 
-	Funktionon
+// Variables
 
-	Der AVR soll als Kühlschrankwächter fungieren.
-	Er überprüft ob die Kühlschranktür geöffnet ist
-	und wenn sie eine längere Zeit offen bleibt, geht ein Alarm los,
-	Die LED dient einzig unddn allein als Statusanzeige.
-	Blinkt alle 10 Sekunde -> Betriebsbereit
-	Blinkt alle  1 Sekunde -> Alarm
+const int delay = 100;
 
-	Extra 1: Stromsparmodus soll aktiviert werden damit er alle 10 Sekunden einschläft und den Kontakt überprüft
 
-	Extra 2: Speicherung der Anzahl, wie oft die Tür geöffnet wurde. 2 mal kurz, Tür öffnen
+// I/O ports
 
-	PB4 Reedkontakt
-	PB5 LED
-	PB6	Summer
+//DDRB &= ~(1 << PB4);					// PB 4 as input
+//DDRB &= ~(1 << PB5);					// PB 5 as input
+//DDRB |= (1 << PB6);						// PB 6 as output
+//DDRB |= (1 << PB7);						// PB 7 as output
+
+
+// I/O ports setup -> unnötig?
+
+//PORTB &= ~(1 << PB6);					// Low
+//PORTB &= ~(1 << PB7);					// Low
+
+
+// Functions
+
+void blinkLeft (){
 	
-*/
+	// .. than blink sequence left
+	PORTB |= (1 << PB6);			// PB 6 on
+	_delay_ms(delay);				// Delay in ms
+	PORTB &= ~(1 << PB6);			// PB 6 off
+	_delay_ms(delay);				// Delay in ms
+}
+	
+void blinkRight(){
+	
+	// ... than blink sequence right
+	PORTB |= (1 << PB7);			// PB 7 on
+	_delay_ms(delay);				// Delay in ms
+	PORTB &= ~(1 << PB7);			// PB 7 off
+	_delay_ms(delay);				// Delay in ms
+}
+
+
+// Main program
+
+int main (void){
+
+
+DDRB |= (1 << PB6);						// PB 6 as output
+DDRB |= (1 << PB7);						// PB 7 as output
+
+	// Main loop
+	while (1){								// Infinite loop
+			
+		if (PINB & (1 << PB4)){				// If button PB4 pressed,...
+			blinkRight();
+		}
+		
+		if (PINB & (1 << PB5)){				// If button PB5 pressed,...
+			blinkLeft();
+		}
+	}
+}
