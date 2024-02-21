@@ -29,7 +29,7 @@ Türwächter
 
 	Aufbau
  
-	PB 4 - Reedkontakt -> Ist ein Öffner kein Schließer!!!
+	PB 4 - Reedkontakt -> Ist ein Öffner kein Schließer!!! Für einen Schließer wird der Operator ! benötigt
 	PB 5 - LED
 	PB 6 - Summer
 	
