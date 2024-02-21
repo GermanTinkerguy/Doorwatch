@@ -17,23 +17,22 @@ Türwächter
 	- The proprietary connector is connected to D+ & D- and can be used to power the circuit
 
 
-	Funktionen
+	Functions
 
-	- Der AVR soll als Kühlschrankwächter fungieren.
-	  Er überprüft ob die Kühlschranktür geöffnet ist
-	  und wenn sie eine längere Zeit offen bleibt, geht ein Alarm los,
-	- Die LED dient einzig und allein als Statusanzeige.
-	  Blinkt alle 10 Sekunde -> Betriebsbereit
-	  Blinkt alle  1 Sekunde -> Alarm
-   
-	- Extra 1: Stromsparmodus soll aktiviert werden damit er alle 10 Sekunden einschläft und den Kontakt überprüft
+	The AVR controlls the door from the fridge.
+	If the door is open, the AVR recognizes the new condition.
+    	If the door is open for a longer time, there is an alarm.
+     	There are 2 LEDs.
+      	One shows the operating status.
+       	One is for "door open" and "alarm" flashes both LEDs.
 
-	- Extra 2: Speicherung der Anzahl, wie oft die Tür geöffnet wurde. 2 mal kurz, Tür öffnen
+ 	- Extra 1: Energysaving and sleep mode
+	- Extra 2: Counter, how often the door was open -> Display
 
 	Aufbau
  
-	PB 4 - Reedkontakt -> Ist ein Öffner kein Schließer!!! Für einen Schließer wird der Operator ! benötigt
-	PB 5 - LED
-	PB 6 - Summer
+	PB 4 - Reedcontact -> Is an opener, cause the door is constantly closed. If you need a closer you have to change the operator <!>.
+	PB 5 - green LED
+	PB 6 - red LED or buzzerSummer
 	
 */
