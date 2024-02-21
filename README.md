@@ -4,8 +4,11 @@ Türwächter
 /*	Information
 
 	This AT90USB162 was on a PCB salvaged from a "Grundig Footswitch 540 USB", which was part of a voice recorder.
- 	I disassampled  the PCB and reversed engineered it.
+ 	I disassambled the PCB out of the housing and reversed engineered it.
  	The fully circuit layout will come later.
+  	After that i shrank the PCB with a saw for a better mobility.
+   	With the smaller layout I lost the connector pads for PB4, PB5, PB6 and PB7.
+    	So I had to open the trace to free the copper.
 
 	- The AT90USB162 runs at 8 MHz
 	- The connections are possible on PB4 PB5 PB6 PB7
