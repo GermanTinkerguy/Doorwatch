@@ -12,6 +12,7 @@ Türwächter
 
 	- The AT90USB162 runs at 8 MHz
 	- The connections are possible on PB4 PB5 PB6 PB7
+ 	  Other PINs will possible to, if you are able to solder SMD microcontrollers
 	- All these ports use pull up resistors, no internal!
 	- The At90USB162 runs with 3.3V
 	- The proprietary connector is connected to D+ & D- and can be used to power the circuit
@@ -29,7 +30,8 @@ Türwächter
  	- Extra 1: Energysaving and sleep mode
 	- Extra 2: Counter, how often the door was open -> Display
 
-	Aufbau
+
+	Setup
  
 	PB 4 - Reedcontact -> Is an opener, cause the door is constantly closed. If you need a closer you have to change the operator <!>.
 	PB 5 - green LED
