@@ -1,36 +1,40 @@
 // Clock speed
 
-#ifndef F_CPU
-#define F_CPU 8000000
-#endif
+//#ifndef F_CPU
+#define F_CPU 8000000			// AT90USB162 runs at 8 MHz
+//#endif
 
 
 // Libraries
 
-#include <stdint.h>
-#include <avr/io.h>
-#include <util/delay.h>
+#include <stdint.h>				// Integer variable
+#include <avr/io.h>				// I/O ports
+#include <util/delay.h>			// Delay function
 
 
 // Functions
 
 void status (){
-	PORTB |= (1 << PB5);
+	PORTB |= (1 << PB6);
 	_delay_ms (100);
-	PORTB &= ~(1 << PB5);
+	PORTB &= !(1 << PB6);
 	_delay_ms (100);
 }
 
 void open (){
 	PORTB |= (1 << PB5);
-	_delay_ms (2000);
-	PORTB &= (1 << PB5);
+	_delay_ms (100);
+	PORTB &= !(1 << PB5);
+	_delay_ms (100);
 }
 
 void alarm (){
 	PORTB |= (1 << PB5);
-	_delay_ms (1000);
-	PORTB &= (1 << PB5);
+	PORTB |= (1 << PB6);	
+	_delay_ms (100);
+	PORTB &= !(1 << PB5);
+	PORTB &= !(1 << PB6);	
+	_delay_ms (100);
 }
 
 
@@ -38,13 +42,27 @@ void alarm (){
 
 int main (void){
 
-	DDRB &= ~(1 << PB4);		// Pin PB4 as input - Button
-	DDRB |= (1 << PB5);			// Pin PB5 as output - LED
-	DDRB |= (1 << PB6);			// Pin PB6 as output - Buzzer
+	DDRB &= !(1 << PB4);		// Pin PB4 as input - Button
+	DDRB |= (1 << PB5);			// Pin PB5 as output - green LED
+	DDRB |= (1 << PB6);			// Pin PB6 as output - Buzzer/ red LED
 
-	while (1){								// Infinite loop
-		if (PINB & (1 << PB4)){				// If button PB4 pressed -> LOW ( Opener, For a closer you need !PINB )
-			status();
+	uint8_t counter = 0;
+
+	while (1){										// Infinite loop
+//		status();									// Status blink
+		if (PINB & (1 << PB4) && (counter < 2)){	// If button PB4 pressed -> LOW
+			for (uint8_t i = 0; i <= 2; i++){		// Loop until it checks input again
+				open();								// Door open
+			}
+			counter = counter + 1;					// How many times is input checked
+		}
+		if (PINB & (1 << PB4) && (counter == 2)){	// If button PB4 pressed -> LOW
+			for (uint8_t i = 0; i <= 2; i++){		// Loop until it checks input again
+				alarm();							// Door to long open -> alarm
+			}
+		}
+		if ((!(PINB & (1 << PB4))) && (counter == 2)) {
+			counter = 0;							// Reset counter
 		}
 	}
 }
