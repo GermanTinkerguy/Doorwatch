@@ -11,7 +11,7 @@
 #include <util/delay.h>		// Delay function
 
 #ifndef F_CPU				// Include guards
-#define F_CPU 8000000		// AT90USB162 runs at 8 MHz clock speed
+#define F_CPU 8000000UL		// AT90USB162 runs at 8 MHz clock speed
 #endif						// Include guards
 
 
