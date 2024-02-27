@@ -18,14 +18,14 @@
 void status (){
 	PORTB |= (1 << PB5);
 	_delay_ms (100);
-	PORTB &= !(1 << PB5);
+	PORTB &= ~(1 << PB5);
 	_delay_ms (100);
 }
 
 void open (){
 	PORTB |= (1 << PB6);
 	_delay_ms (100);
-	PORTB &= !(1 << PB6);
+	PORTB &= ~(1 << PB6);
 	_delay_ms (100);
 }
 
@@ -33,8 +33,8 @@ void alarm (){
 	PORTB |= (1 << PB5);
 	PORTB |= (1 << PB6);
 	_delay_ms (100);
-	PORTB &= !(1 << PB5);
-	PORTB &= !(1 << PB6);
+	PORTB &= ~(1 << PB5);
+	PORTB &= ~(1 << PB6);
 	_delay_ms (100);
 }
 
@@ -43,7 +43,7 @@ void alarm (){
 
 int main (void){
 
-	DDRB &= !(1 << PB4);		// Pin PB4 as input - Button
+	DDRB &= ~(1 << PB4);		// Pin PB4 as input - Button
 	DDRB |= (1 << PB5);			// Pin PB5 as output - green LED
 	DDRB |= (1 << PB6);			// Pin PB6 as output - Buzzer/ red LED
 
