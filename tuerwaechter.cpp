@@ -16,25 +16,25 @@
 // Functions
 
 void status (){
+	PORTB |= (1 << PB5);
+	_delay_ms (100);
+	PORTB &= !(1 << PB5);
+	_delay_ms (100);
+}
+
+void open (){
 	PORTB |= (1 << PB6);
 	_delay_ms (100);
 	PORTB &= !(1 << PB6);
 	_delay_ms (100);
 }
 
-void open (){
-	PORTB |= (1 << PB5);
-	_delay_ms (100);
-	PORTB &= !(1 << PB5);
-	_delay_ms (100);
-}
-
 void alarm (){
 	PORTB |= (1 << PB5);
-	PORTB |= (1 << PB6);	
+	PORTB |= (1 << PB6);
 	_delay_ms (100);
 	PORTB &= !(1 << PB5);
-	PORTB &= !(1 << PB6);	
+	PORTB &= !(1 << PB6);
 	_delay_ms (100);
 }
 
@@ -50,7 +50,7 @@ int main (void){
 	uint8_t counter = 0;
 
 	while (1){										// Infinite loop
-//		status();									// Status blink
+		status();									// Status blink
 		if (PINB & (1 << PB4) && (counter < 2)){	// If button PB4 pressed -> LOW
 			for (uint8_t i = 0; i <= 2; i++){		// Loop until it checks input again
 				open();								// Door open
