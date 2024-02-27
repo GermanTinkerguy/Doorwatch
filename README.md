@@ -1,4 +1,6 @@
 /*
+	Doorwatch (german: Tuerwaechter)
+
 	Information
 
 	This AT90USB162 was on a PCB salvaged from a "Grundig Footswitch 540 USB", which was part of a voice recorder.
