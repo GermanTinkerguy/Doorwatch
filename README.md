@@ -13,9 +13,9 @@ Türwächter
 	- The AT90USB162 runs at 8 MHz
 	- The connections are possible on PB4 PB5 PB6 PB7
  	  Other PINs will possible to, if you are able to solder SMD microcontrollers
-	- All these ports use pull up resistors, no internal!
+	- All these ports use pull up resistors, no internal are needed
 	- The At90USB162 runs with 3.3V
-	- The proprietary connector is connected to D+ & D- and can be used to power the circuit
+	- The proprietary connector is connected to D+ & D- can be used to power the circuit
 
 
 	Functions
