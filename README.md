@@ -1,7 +1,5 @@
-# tuerwaechter
-Türwächter
-
-/*	Information
+/*
+	Information
 
 	This AT90USB162 was on a PCB salvaged from a "Grundig Footswitch 540 USB", which was part of a voice recorder.
  	I disassambled the PCB out of the housing and reversed engineered it.
@@ -38,5 +36,4 @@ Türwächter
 	PB 4 - Reedcontact -> Is an opener, cause the door is constantly closed. If you need a closer you have to change the operator <!>.
 	PB 5 - green LED
 	PB 6 - red LED or buzzerSummer
-	
 */
