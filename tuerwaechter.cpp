@@ -1,20 +1,30 @@
-// Clock speed
+/*
+ *
+ *	Program for a door watch alarm system.
+ *	Oliver - 2024.
+ *
+ */
 
-//#ifndef F_CPU
-#define F_CPU 8000000		// AT90USB162 runs at 8 MHz
-//#endif
-
-
-// Libraries
 
 #include <stdint.h>			// Integer variable
 #include <avr/io.h>			// I/O ports
 #include <util/delay.h>		// Delay function
-#include <avr/sleep.h>		// Sleep mode (not used atm)
+
+#ifndef F_CPU				// Include guards
+#define F_CPU 8000000		// AT90USB162 runs at 8 MHz clock speed
+#endif						// Include guards
 
 
-// Functions
-
+/***************************************************
+ *  Name:        status
+ *
+ *  Returns:     Nothing.
+ *
+ *  Parameters:  None.
+ *
+ *  Description: Status indication.
+ *
+ ***************************************************/
 void status (){
 	PORTB |= (1 << PB5);
 	_delay_ms (100);
@@ -22,6 +32,17 @@ void status (){
 	_delay_ms (100);
 }
 
+
+/***************************************************
+ *  Name:        open
+ *
+ *  Returns:     Nothing.
+ *
+ *  Parameters:  None.
+ *
+ *  Description: Indication for door is open.
+ *
+ ***************************************************/
 void open (){
 	PORTB |= (1 << PB6);
 	_delay_ms (100);
@@ -29,6 +50,17 @@ void open (){
 	_delay_ms (100);
 }
 
+
+/***************************************************
+ *  Name:        alarm
+ *
+ *  Returns:     Nothing.
+ *
+ *  Parameters:  None.
+ *
+ *  Description: Alarm.
+ *
+ ***************************************************/
 void alarm (){
 	PORTB |= (1 << PB5);
 	PORTB |= (1 << PB6);
@@ -39,30 +71,42 @@ void alarm (){
 }
 
 
-// Main program
+/***************************************************
+ *  Name:        main(void)
+ *
+ *  Returns:     Nothing.
+ *
+ *  Parameters:  None.
+ *
+ *  Description: Main program.
+ *
+ ***************************************************/
 
 int main (void){
-
+	
+	// I/O Pin setup
 	DDRB &= ~(1 << PB4);		// Pin PB4 as input - Button
 	DDRB |= (1 << PB5);			// Pin PB5 as output - green LED
 	DDRB |= (1 << PB6);			// Pin PB6 as output - Buzzer/ red LED
 
-	uint8_t counter = 0;
+	// Variables
+	uint8_t counter = 0;		// Variable for counting the clock cycles how long the door was open
 
+	// Main loop
 	while (1){										// Infinite loop
 		status();									// Status blink
-		if (PINB & (1 << PB4) && (counter < 2)){	// If button PB4 pressed -> LOW
-			for (uint8_t i = 0; i <= 2; i++){		// Loop until it checks input again
-				open();								// Door open
+		if (PINB & (1 << PB4) && (counter < 2)){	// If button PB4 pressed = door open (HIGH -> LOW)
+			for (uint8_t i = 0; i <= 2; i++){		// Loop until it checks input again (2 times)
+				open();								// Door open indication
 			}
 			counter += 1;							// Counts up for how many times is input "door open" checked
 		}
-		if (PINB & (1 << PB4) && (counter == 2)){	// If button PB4 pressed -> LOW
-			for (uint8_t i = 0; i <= 2; i++){		// Loop until it checks input again
+		if (PINB & (1 << PB4) && (counter == 2)){	// If button PB4 still pressed = door still open (HIGH -> LOW)
+			for (uint8_t i = 0; i <= 2; i++){		// Loop until it checks input again (2 times)
 				alarm();							// Door to long open -> alarm
 			}
 		}
-		if ((!(PINB & (1 << PB4))) && (counter == 2)) {		// If button PB4 release -> HIGH
+		if ((!(PINB & (1 << PB4))) && (counter == 2)) {		// If button PB4 released = door closed (LOW -> HIGH)
 			counter = 0;									// Reset counter
 		}
 	}
