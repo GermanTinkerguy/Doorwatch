@@ -24,8 +24,10 @@ Türwächter
 	If the door is open, the AVR recognizes the new condition.
     	If the door is open for a longer time, there is an alarm.
      	There are 2 LEDs.
-      	One shows the operating status.
-       	One is for "door open" and "alarm" flashes both LEDs.
+      	The green LED on PB 5 shows the operating status.
+       	The red LED on PB 6 is used for the "door open" and "alarm".
+	"Door open" flashes the red LED.
+ 	"Alarm" flashes green and red together.
 
  	- Extra 1: Energysaving and sleep mode
 	- Extra 2: Counter, how often the door was open -> Display
