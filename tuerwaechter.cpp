@@ -106,7 +106,7 @@ int main (void){
 				alarm();							// Door to long open -> alarm
 			}
 		}
-		if ((!(PINB & (1 << PB4))) && (counter == 2)) {		// If button PB4 released = door closed (LOW -> HIGH)
+		if ((!(PINB & (1 << PB4))) && (counter == 2)){		// If button PB4 released = door closed (LOW -> HIGH)
 			counter = 0;									// Reset counter
 		}
 	}
