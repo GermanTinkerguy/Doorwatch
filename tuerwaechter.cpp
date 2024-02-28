@@ -27,9 +27,9 @@
  ***************************************************/
 void status (){
 	PORTB |= (1 << PB5);
-	_delay_ms (100);
+	_delay_ms (1000);
 	PORTB &= ~(1 << PB5);
-	_delay_ms (100);
+	_delay_ms (1000);
 }
 
 
@@ -45,9 +45,9 @@ void status (){
  ***************************************************/
 void open (){
 	PORTB |= (1 << PB6);
-	_delay_ms (100);
+	_delay_ms (1000);
 	PORTB &= ~(1 << PB6);
-	_delay_ms (100);
+	_delay_ms (1000);
 }
 
 
@@ -64,10 +64,10 @@ void open (){
 void alarm (){
 	PORTB |= (1 << PB5);
 	PORTB |= (1 << PB6);
-	_delay_ms (100);
+	_delay_ms (1000);
 	PORTB &= ~(1 << PB5);
 	PORTB &= ~(1 << PB6);
-	_delay_ms (100);
+	_delay_ms (1000);
 }
 
 
