@@ -29,9 +29,8 @@
        	The red LED on PB 6 is used for the "door open" and "alarm".
 	"Door open" flashes the red LED.
  	"Alarm" flashes green and red together.
-
- 	- Extra 1: Energysaving and sleep mode
-	- Extra 2: Counter, how often the door was open -> Display
+  	If the door is closed the AVR goes to sleep mode.
+   	Every pin change, wakes him up.
 
 
 	Setup
