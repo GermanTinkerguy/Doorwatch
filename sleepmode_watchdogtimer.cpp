@@ -1,6 +1,6 @@
 /*
  *
- *	Program for sleep mode examples with watchdog wake up
+ *	Program for sleep mode examples with watchdog timer wake up
  *	Oliver - 2024.
  *
  */
