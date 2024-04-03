@@ -38,4 +38,11 @@
 	PB 4 - Reedcontact -> Is an opener, cause the door is constantly closed. If you need a closer you have to change the operator <!>.
 	PB 5 - green LED
 	PB 6 - red LED or buzzerSummer
+
+
+ 	Wishlist
+
+	- Control doorwatch with a remote control - activate, deactivate, etc
+  	- Mute alarm with a remote control
+   	- Logging opening times on a CF Card
 */
