@@ -28,9 +28,9 @@ To Do's:
 - Log Data, when and how long the alarm was activated
 - Remote control to mute the alarm
 - Buzzer
+- Millis instead of Delay
 
 ***
 
 Known Issues:
 - The microcontroller doesn't react to a PCINT directly after falling asleep because of the PIN float. It needs 3-4 seconds until it realizes the PCINT.
-- Change delay to millis.
