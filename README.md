@@ -10,7 +10,7 @@ CAD         — contains the 3D models and mechanical designs for enclosures or 
 ***
 
 Information:
-A doorwatch using a salvaged AT90USB162.
+- A doorwatch using a salvaged AT90USB162.
 The Status LED at PIN 5 is flashing every second.
 If the reedcontact at PIN 4 is open, the alarm LED at PIN 6 will flash.
 If the reedcontact stays close, the Controller will fall asleep in the last part.
