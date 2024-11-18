@@ -25,6 +25,9 @@ Functions:
 
 To Do's:
 - Optimization of the code.
+- Log Data, when and how long the alarm was activated
+- Remote control to mute the alarm
+- Buzzer
 
 ***
 
