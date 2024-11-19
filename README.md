@@ -6,4 +6,3 @@ Project Repository Structure
 - Production  — contains the gerber files, BOM or anything required by the fabrication houses
 - Simulation  — contains any simulation files and generated results
 - CAD         — contains the 3D models and mechanical designs for enclosures or support
-lol
