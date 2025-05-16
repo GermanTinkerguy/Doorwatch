@@ -18,11 +18,13 @@
 #include <avr/interrupt.h>	// Interrupt implementation
 
 
-#define BUTTON_PRESSED	(PINB & (1 << PB4))		// PB4 - Button pressed
+#define BUTTON_PRESSED	(PINB & (1 << PB4))		// PB4 - Button pressed - PCINT4
 #define LED_GN_ON		(PORTB |= (1 << PB5))	// PB5 - LED green on
 #define LED_GN_OFF		(PORTB &= ~(1 << PB5))	// PB5 - LED green off
+#define LED_GN_TOGGLE	(PORTB ^= (1 << PB5))	// PB5 - LED green toggle
 #define LED_RD_ON		(PORTB |= (1 << PB6))	// PB6 - LED red on
 #define LED_RD_OFF		(PORTB &= ~(1 << PB6))	// PB6 - LED red off
+#define LED_RD_TOGGLE	(PORTB ^= (1 << PB6))	// PB6 - LED red toggle
 
 
 // Interrupt service routine
@@ -101,13 +103,13 @@ int main (void)
 			counter = 0;							// Reset counter
 
 			// Pin change interrupt setup
-			cli ();					// Disable status register global interrupt - for programming
-			PCICR |= (1<<PCIE0);	// Turn on port b
-			PCMSK0 |= (1 << PB4);	// Turn on pin PB4, which is PCINT4
-			sei ();					// Enable status register global interrupt
+			cli ();						// Disable status register global interrupt - for programming
+			PCICR |= (1<<PCIE0);		// Enable pin change interrupt PB4 - PCINT4
+			PCMSK0 |= (1 << PCINT4);	// Enable pin change interrupt mask PB4 - PCINT4
+			sei ();						// Enable status register global interrupt
 
 			// Sleep mode list
-			set_sleep_mode(SLEEP_MODE_PWR_DOWN);	// Set sleep mode: power down
+			set_sleep_mode (SLEEP_MODE_PWR_DOWN);	// Set sleep mode: power down
 			sleep_mode ();							// Activate sleep mode
 		}
 	}
