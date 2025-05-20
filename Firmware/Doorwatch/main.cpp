@@ -27,6 +27,9 @@
 #define LED_RD_TOGGLE	(PORTB ^= (1 << PB6))	// PB6 - LED red toggle
 
 
+// volatile uint8_t counter = 0;		// Volatile varialbe for global use
+
+
 // Interrupt service routine
 ISR (PCINT0_vect)		// Port B, PCINT0 - PCINT7
 {
