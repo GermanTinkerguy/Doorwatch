@@ -34,7 +34,7 @@ ISR (PCINT0_vect)		// Port B, PCINT0 - PCINT7
 
 
 // Status indication
-void status ()
+int status (void)
 {
 	LED_GN_ON;
 	_delay_ms (1000);
@@ -44,7 +44,7 @@ void status ()
 
 
 // Indication for door is open
-void open ()
+int open (void)
 {
 	LED_RD_ON;
 	_delay_ms (1000);
@@ -54,7 +54,7 @@ void open ()
 
 
 // Alarm
-void alarm ()
+int alarm (void)
 {
 	LED_GN_ON;
 	LED_RD_ON;
