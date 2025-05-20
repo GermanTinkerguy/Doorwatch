@@ -42,7 +42,7 @@ ISR (PCINT0_vect)		// Port B, PCINT0 - PCINT7
 }
 
 // Status indication
-int idle ()
+int idle (void)
 {
 	LED_GN_ON;
 	_delay_ms (1000);
@@ -51,7 +51,7 @@ int idle ()
 }
 
 // Indication for door is open
-int open ()
+int open (void)
 {
 	LED_RD_ON;
 	_delay_ms (1000);
@@ -60,7 +60,7 @@ int open ()
 }
 
 // Alarm
-int alarm ()
+int alarm (void)
 {
 	LED_GN_ON;
 	LED_RD_ON;
@@ -70,19 +70,19 @@ int alarm ()
 	_delay_ms (1000);
 }
 
-int sleep ()
+int sleep (void)
 {
 	
 }
 
-int setup ()
+int setup (void)
 {
 	DDRB &= ~(1 << PB4);	// PB4 input  0 - Button
 	DDRB |= (1 << PB5);		// PB5 output 1 - LED green
 	DDRB |= (1 << PB6);		// PB6 output 1 - LED red
 }
 
-int loop ()
+int loop (void)
 {
 	switch (currentState)
 	{
