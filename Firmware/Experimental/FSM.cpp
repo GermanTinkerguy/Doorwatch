@@ -1,5 +1,5 @@
 ﻿/*
- * Program for a door watch with sleep mode and pin change interrupt wake up using a finite state machine
+ * Program for a door watch with sleep mode and pin change interrupt wake up using a finite state machine - still not working
  *
  * Created: 19.05.2025
  * Author : Oliver
