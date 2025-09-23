@@ -8,11 +8,11 @@
 ** uC		: AT90USB162
 ** F_CPU	: 8MHz
 ** Pullups	: Yes (external)
-** Function	: Using a salvaged PCB with an AT90USB162, external crystal and external pullups.
-**		  Program for a door watch, which indicates its functionality with a green power on LED (PB5).
-**		  If the door contact (PB4) is open, the alarming red LED (PB6) will blink.
+** Function	: Using a salvaged pcb with an AT90USB162, external crystal and external pullups.
+**		  Program for a door watch, which indicates its functionality with a green power on led (PB5).
+**		  If the door contact (PB4) is open, the alarming red led (PB6) will blink.
 **		  The uC goes asleep (power down) if the door is closed.
-**		  In power down, the green LED (PB5) is off.
+**		  In power down, the green led (PB5) is off.
 **		  Using a pin change interrupt (PCINT4) will wake up the uC.
 */
 
