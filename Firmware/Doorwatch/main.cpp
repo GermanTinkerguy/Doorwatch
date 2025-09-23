@@ -30,16 +30,13 @@
 
 
 #define CONFIG_INPUTS	{ DDRB = 0x00; DDRC = 0x00; DDRD = 0x00; }		// Configure inputs (0) including all unused pins against floating
-#define CONFIG_PULLUPS	{ PORTB = 0x8F; PORTC = 0xF7; PORTD = 0xFF; }	// Enable internal pullups for all unused pins (including PB4 & except PB4, PB5 and PB6 & missing PIN PC3) against floating
-#define BUTTON_PRESSED	( PINB & (1 << PB4) )							// PB4 - Button pressed - PCINT4
+#define BUTTON_PRESSED	( PINB & (1 << PB4) )							// PB4 - button pressed - PCINT4
 
 #define CONFIG_OUTPUTS	{ DDRB |= (1 << PB5) + (1 << PB6); }			// Configure outputs (1)
-#define LED_GN_ON		{ PORTB |= (1 << PB5); }						// PB5 - LED green on
-#define LED_GN_OFF		{ PORTB &= ~(1 << PB5); }						// PB5 - LED green off
-#define LED_GN_TOGGLE	{ PORTB ^= (1 << PB5); }						// PB5 - LED green toggle
-#define LED_RD_ON		{ PORTB |= (1 << PB6); }						// PB6 - LED red on
-#define LED_RD_OFF		{ PORTB &= ~(1 << PB6); }						// PB6 - LED red off
-#define LED_RD_TOGGLE	{ PORTB ^= (1 << PB6); }						// PB6 - LED red toggle
+#define LED_GN_ON		{ PORTB |= (1 << PB5); }						// PB5 - led green on
+#define LED_GN_OFF		{ PORTB &= ~(1 << PB5); }						// PB5 - led green off
+#define LED_RD_OFF		{ PORTB &= ~(1 << PB6); }						// PB6 - led red off
+#define LED_RD_TOGGLE	{ PORTB ^= (1 << PB6); }						// PB6 - led red toggle
 
 
 volatile unsigned long millis = 0;										// Part of millis function
@@ -49,9 +46,8 @@ enum statemachine {start, alarm, sleep};								// Part of statemachine
 
 int main (void)
 {
-	// Config I/O
+	// Config i/o pins
 	CONFIG_INPUTS;
-	//	CONFIG_PULLUPS;
 	CONFIG_OUTPUTS;
 
 	// Part of millis function
@@ -61,7 +57,7 @@ int main (void)
 	OCR1A = 7999;              											// Set CTC compare value to 1000 Hz at 8 MHz AVR clock , with a prescaler of 1
 	TCCR1B |= (1 << CS10);          									// Start timer at F_CPU /1
 
-	// Part of blink LED
+	// Part of blink led
 	const unsigned long interval_1 = 1000;								// Alarm-loop (1)
 	unsigned long millis_start_1 = 0;
 
@@ -80,7 +76,7 @@ int main (void)
 		switch (state)
 		{
 			case start:
-				LED_GN_ON;												// Power on LED
+				LED_GN_ON;												// Power on led
 
  				if (BUTTON_PRESSED)
 				{
@@ -93,7 +89,7 @@ int main (void)
 				break;
 
 			case alarm:
-				LED_GN_ON;												// Power on LED
+				LED_GN_ON;												// Power on led
 				if (millis_current - millis_start_1 >= interval_1)
 				{
 					millis_start_1 = millis_current;
@@ -103,8 +99,8 @@ int main (void)
 				break;
 
 			case sleep:
-				LED_GN_OFF;												// Power on LED off for sleeping
-				LED_RD_OFF;												// Turn LED off
+				LED_GN_OFF;												// Power on led off for sleeping
+				LED_RD_OFF;												// Turn led off
 
 				// Pin change interrupt setup
 				cli ();													// Disable status register global interrupt - for programming
