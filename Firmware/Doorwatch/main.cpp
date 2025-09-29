@@ -72,12 +72,36 @@ int main (void)
 		unsigned long millis_current = millis;							// Updates frequently
 		sei ();
 
+		// Part of debounce routine
+		uint_8 button_state = 0;
+
 		// Statemachine
 		switch (state)
 		{
 			case start:
 				LED_GN_ON;												// Power on led
 
+				if (button_state == 0 && (BUTTON_PRESSED))				// Button will be pushed
+				{
+					button_state = 1;
+					return 1;
+				}
+				else if (button_state == 1 && (BUTTON_PRESSED))			// Button will be hold
+				{
+					button_state = 2;
+					return 0;
+				}
+				else if (button_state == 2 && (!(BUTTON_PRESSED)))		// Button will be released
+				{
+					button_state = 3;
+					return 0;
+				}
+				else if (button_state == 3 && (!(BUTTON_PRESSED)))		// Button released
+				{
+					button_state = 0;
+					return 0;
+				}
+/*
  				if (BUTTON_PRESSED)
 				{
 					state = alarm;
@@ -87,6 +111,7 @@ int main (void)
 					state = sleep;
 				}
 				break;
+*/
 
 			case alarm:
 				LED_GN_ON;												// Power on led
