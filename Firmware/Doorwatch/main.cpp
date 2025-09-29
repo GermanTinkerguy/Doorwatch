@@ -84,6 +84,7 @@ int main (void)
 				if (button_state == 0 && (BUTTON_PRESSED))				// Button will be pushed
 				{
 					button_state = 1;
+					state = sleep;
 					return 1;
 				}
 				else if (button_state == 1 && (BUTTON_PRESSED))			// Button will be hold
@@ -99,6 +100,7 @@ int main (void)
 				else if (button_state == 3 && (!(BUTTON_PRESSED)))		// Button released
 				{
 					button_state = 0;
+					state = alarm;
 					return 0;
 				}
 /*
