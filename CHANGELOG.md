@@ -7,10 +7,6 @@ All notable changes to this project will be documented in this file.
 ### Added
 
 - Including debounce routine
- 
-### Changed
- 
-### Fixed
 
  
 ## [2.2.0] - 2025-08-15
@@ -18,10 +14,6 @@ All notable changes to this project will be documented in this file.
 ### Added
 
 - Now using statemachine
-   
-### Changed
- 
-### Fixed
 
 
 ## [2.1.0] - 2025-08-01
@@ -30,20 +22,13 @@ All notable changes to this project will be documented in this file.
 
 - Including of a millis function like in arduino
    
-### Changed
- 
 ### Fixed
 
 - Floating Pins
-
   
 
 ## [2.0.0] - 2025-07-01
  
-### Added
+### Changed
 
 - Software Upgrade to v2.0.0
-   
-### Changed
- 
-### Fixed
