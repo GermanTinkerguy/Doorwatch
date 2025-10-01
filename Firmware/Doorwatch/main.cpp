@@ -51,11 +51,11 @@
 **				Target Timer Count	=	( 	---------------------------	)   -  1
 **											Prescale x Target Frequency		
 **
-**				Target Frequency:		1000 Hz -> 1000000000uSecons
+**				Target Frequency:				1000 Hz -> 1000000000uSeconds
 **				Input Frequency (AT90USB162):	8 MHz
 **
 **				8.000.000Hz
-**				----------- -1
+**				-----------		-	1
 **				64 x 1000Hz
 **
 **				Prescaler Value			Target Timer Count
