@@ -14,6 +14,23 @@
 **		  The uC goes asleep (power down) if the door is closed.
 **		  In power down, the green led (PB5) is off.
 **		  Using a pin change interrupt (PCINT4) will wake up the uC.
+**
+**
+** Debounce
+**
+**	 (0)   (1)				   (3)				(0)
+**	________   _   _			 _   _   ____________
+**			| | | |	|			| | | | |
+**			| | | |	|			| | | | |
+**			| | | |	|			| | | | |
+**		 	| | | |	|			| | | | |
+**			|_| |_| |___________| |_| |_|
+**						(2)
+**
+**	(0)	Sleep
+**	(1) Button pressed
+**	(2) Button hold
+**	(3) Button released
 */
 
 
@@ -81,26 +98,27 @@ int main (void)
 			case start:
 				LED_GN_ON;												// Power on led
 
-				if (button_state == 0 && (BUTTON_PRESSED))				// Button will be pushed
+				// Debounce routine
+				if (button_state == 0 && (BUTTON_PRESSED))				// Button pressed
 				{
 					button_state = 1;
-					state = sleep;
 					return 1;
 				}
-				else if (button_state == 1 && (BUTTON_PRESSED))			// Button will be hold
+				else if (button_state == 1 && (BUTTON_PRESSED))			// Button hold
 				{
 					button_state = 2;
+					state = alarm;
 					return 0;
 				}
-				else if (button_state == 2 && (!(BUTTON_PRESSED)))		// Button will be released
+				else if (button_state == 2 && (!(BUTTON_PRESSED)))		// Button released
 				{
 					button_state = 3;
 					return 0;
 				}
-				else if (button_state == 3 && (!(BUTTON_PRESSED)))		// Button released
+				else if (button_state == 3 && (!(BUTTON_PRESSED)))		// Button untouched
 				{
 					button_state = 0;
-					state = alarm;
+					state = sleep;
 					return 0;
 				}
 /*
