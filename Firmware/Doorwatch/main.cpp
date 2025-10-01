@@ -93,6 +93,8 @@
 **								  (1) Button pressed
 **								  (2) Button hold
 **								  (3) Button released
+**
+**								  Debounce interval = 100ms
 */
 
 
@@ -120,8 +122,7 @@
 
 volatile unsigned long millis = 0;										// Part of millis function
 
-enum statemachine {start, alarm, sleep};								// Part of statemachine
-
+enum statemachine {start, alarm, sleep};										// Part of statemachine
 
 int main (void)
 {
@@ -140,8 +141,12 @@ int main (void)
 	const unsigned long interval_1 = 1000;								// Alarm-loop (1)
 	unsigned long millis_start_1 = 0;
 
+	// Part of a simple delay debounce routine
+	const unsigned long interval_2 = 100;								// Debounce
+	unsigned long millis_start_2 = 0;
+
 	// Part of statemachine
-	statemachine state = start;
+	enum statemachine state = start;
 	
 	// Main loop
 	while (1)
@@ -151,34 +156,22 @@ int main (void)
 		unsigned long millis_current = millis;							// Updates frequently
 		sei ();
 
-		// Part of debounce routine
-		uint_8 button_state = 0;
-
 		// Statemachine
 		switch (state)
 		{
 			case start:
 				LED_GN_ON;												// Power on led
 
-				// Debounce routine
-				if (button_state == 0 && (BUTTON_PRESSED))				// Button pressed
+				if (BUTTON_PRESSED && (millis_current - millis_start_2 >= interval_2))	// Debounce routine
 				{
-					button_state = 1;
+					millis_start_2 = millis_current;
+					state = alarm,
 				}
-				else if (button_state == 1 && (BUTTON_PRESSED))			// Button hold
+				else if (!(BUTTON_PRESSED))
 				{
-					button_state = 2;
-					state = alarm;
-				}
-				else if (button_state == 2 && (!(BUTTON_PRESSED)))		// Button released
-				{
-					button_state = 3;
-				}
-				else if (button_state == 3 && (!(BUTTON_PRESSED)))		// Button untouched
-				{
-					button_state = 0;
 					state = sleep;
 				}
+				break;
 
 			case alarm:
 				LED_GN_ON;												// Power on led
