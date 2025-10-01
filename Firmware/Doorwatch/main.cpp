@@ -1,5 +1,5 @@
 /*
-** Name	: Doorwatch
+** Name		: Doorwatch
 **
 ** Created	: 2024
 ** Updated	: 2025
@@ -15,22 +15,21 @@
 **		  In power down, the green led (PB5) is off.
 **		  Using a pin change interrupt (PCINT4) will wake up the uC.
 **
+** Debounce	:
 **
-** Debounce
+**				 (0)   (1)				   (3)				(0)
+**				________   _   _			 _   _   ____________
+**						| | | |	|			| | | | |
+**						| | | |	|			| | | | |
+**						| | | |	|			| | | | |
+**					 	| | | |	|			| | | | |
+**						|_| |_| |___________| |_| |_|
+**									(2)
 **
-**	 (0)   (1)				   (3)				(0)
-**	________   _   _			 _   _   ____________
-**			| | | |	|			| | | | |
-**			| | | |	|			| | | | |
-**			| | | |	|			| | | | |
-**		 	| | | |	|			| | | | |
-**			|_| |_| |___________| |_| |_|
-**						(2)
-**
-**	(0)	Sleep
-**	(1) Button pressed
-**	(2) Button hold
-**	(3) Button released
+**			 (0) Sleep
+**			 (1) Button pressed
+**			 (2) Button hold
+**			 (3) Button released
 */
 
 
