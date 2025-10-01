@@ -1,5 +1,6 @@
 /*
 ** Name		: Doorwatch
+** Version	: v2.3.0
 **
 ** Created	: 2024
 ** Updated	: 2025
