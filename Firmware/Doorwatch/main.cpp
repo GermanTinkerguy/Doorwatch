@@ -59,11 +59,11 @@
 **				64 x 1000Hz
 **
 **				Prescaler Value			Target Timer Count
-**				1						7999999	7999			-> usable
-**				8						999999	999				-> usable
-**				64						124999	124				-> usable
-**				256						31249	30,25			-> uunsable
-**				1024					7811,5	5,8125			-> unusable
+**				1						7999999					7999			-> usable
+**				8						999999					999				-> usable
+**				64						124999					124				-> usable
+**				256						31249					30,25			-> uunsable
+**				1024					7811,5					5,8125			-> unusable
 **
 **				>>> 8 bit Timer
 **				1 - 255
