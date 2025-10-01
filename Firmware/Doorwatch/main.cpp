@@ -15,7 +15,8 @@
 **			  In power down, the green led (PB5) is off.
 **			  Using a pin change interrupt (PCINT4) will wake up the uC.
 **
-** Extras	: Millis-function	: Using the timer1 - 16-bit timer copying a millis function like in arduino.
+** Extras	: Millis-function :
+**				Using the timer1 - 16-bit timer copying a millis function like in arduino.
 **
 **				16-bit Timer Calculation
 **
@@ -72,8 +73,11 @@
 **				Using Prescaler Value 1, but 8 and 64 is usable too, also the 8-bit counter!
 **
 **
-**			  Statemachine		: As base there is a state machine.
-**			  Debounce-routine	:
+**			  Statemachine :
+**				As base there is a state machine.
+**
+**
+**			  Debounce-routine :
 **
 **									 (0)   (1)				   (3)				(0)
 **									________   _   _			 _   _   ____________
