@@ -102,36 +102,21 @@ int main (void)
 				if (button_state == 0 && (BUTTON_PRESSED))				// Button pressed
 				{
 					button_state = 1;
-					return 1;
 				}
 				else if (button_state == 1 && (BUTTON_PRESSED))			// Button hold
 				{
 					button_state = 2;
 					state = alarm;
-					return 0;
 				}
 				else if (button_state == 2 && (!(BUTTON_PRESSED)))		// Button released
 				{
 					button_state = 3;
-					return 0;
 				}
 				else if (button_state == 3 && (!(BUTTON_PRESSED)))		// Button untouched
 				{
 					button_state = 0;
 					state = sleep;
-					return 0;
 				}
-/*
- 				if (BUTTON_PRESSED)
-				{
-					state = alarm;
-				}
-				else
-				{
-					state = sleep;
-				}
-				break;
-*/
 
 			case alarm:
 				LED_GN_ON;												// Power on led
