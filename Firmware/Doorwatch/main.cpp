@@ -10,6 +10,8 @@
 ** F_CPU	: 8MHz
 ** Pullups	: Yes (external)
 ** Function	: Using a salvaged pcb with an AT90USB162, external crystal and external pullups.
+**			  There is a reed-contact, so there is no use of a debounce routine.
+**			  Reed-contacts are "bounce free".
 **			  Program for a door watch, which indicates its functionality with a green power on led (PB5).
 **			  If the door contact (PB4) is open, the alarming red led (PB6) will blink.
 **			  The uC goes asleep (power down) if the door is closed.
@@ -76,25 +78,6 @@
 **
 **			  Statemachine :
 **				As base there is a state machine.
-**
-**
-**			  Debounce-routine :
-**
-**									 (0)   (1)				   (3)				(0)
-**									________   _   _			 _   _   ____________
-**											| | | |	|			| | | | |
-**											| | | |	|			| | | | |
-**											| | | |	|			| | | | |
-**										 	| | | |	|			| | | | |
-**											|_| |_| |___________| |_| |_|
-**														(2)
-**
-**								  (0) Sleep
-**								  (1) Button pressed
-**								  (2) Button hold
-**								  (3) Button released
-**
-**								  Debounce interval = 100ms
 */
 
 
@@ -142,8 +125,8 @@ int main (void)
 	unsigned long millis_start_1 = 0;
 
 	// Part of a simple delay debounce routine
-	const unsigned long interval_2 = 100;								// Debounce
-	unsigned long millis_start_2 = 0;
+//	const unsigned long debounceDelay = 100;								// Debounce
+//	unsigned long previousMillis = 0;
 
 	// Part of statemachine
 	enum statemachine state = start;
@@ -162,11 +145,10 @@ int main (void)
 			case start:
 				LED_GN_ON;												// Power on led
 
-				if (BUTTON_PRESSED && (millis_current - millis_start_2 >= interval_2))	// Debounce routine
+				if (BUTTON_PRESSED)
 				{
-					millis_start_2 = millis_current;
-					state = alarm,
-				}
+					state = alarm;
+				}				
 				else if (!(BUTTON_PRESSED))
 				{
 					state = sleep;
