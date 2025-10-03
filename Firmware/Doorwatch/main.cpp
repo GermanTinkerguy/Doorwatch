@@ -105,7 +105,7 @@
 
 volatile unsigned long millis = 0;										// Part of millis function
 
-enum statemachine {start, alarm, sleep};										// Part of statemachine
+enum statemachine {start, alarm, sleep};								// Part of statemachine
 
 int main (void)
 {
@@ -123,10 +123,6 @@ int main (void)
 	// Part of blink led
 	const unsigned long interval_1 = 1000;								// Alarm-loop (1)
 	unsigned long millis_start_1 = 0;
-
-	// Part of a simple delay debounce routine
-//	const unsigned long debounceDelay = 100;								// Debounce
-//	unsigned long previousMillis = 0;
 
 	// Part of statemachine
 	enum statemachine state = start;
