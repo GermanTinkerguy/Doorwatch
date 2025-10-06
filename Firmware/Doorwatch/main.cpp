@@ -1,6 +1,6 @@
 /*
 ** Name		: Doorwatch
-** Version	: v2.3.0
+** Version	: v2.3.1
 **
 ** Created	: 2024
 ** Updated	: 2025
@@ -19,13 +19,13 @@
 **			  Using a pin change interrupt (PCINT4) will wake up the uC.
 **
 ** Extras	: Millis-function :
-**				Using the timer1 - 16-bit timer copying a millis function like in arduino.
+**				Using the timer0, the 8 bit timer copying a millis function like in arduino.
 **
 **				16-bit Timer Calculation
 **
 **													1
-**				Timer Resolution	=	-------------------------
-**										Input Frquency / Prescale
+**				Timer Resolution	=	--------------------------
+**										Input Frequency / Prescale
 **
 **											Prescale
 **									=	---------------
@@ -42,8 +42,8 @@
 **				1024					128us
 **
 **											  1							  1
-**				Target Timer Count	=	---------------		:	---------------------	-  1
-**									  	Taret Frequency			Timer Clock Frequency
+**				Target Timer Count	=	----------------		:	---------------------	-  1
+**									  	Target Frequency			Timer Clock Frequency
 **
 **													1					Prescale
 **				Target Timer Count	=	( 	----------------	/	---------------	   )   -  1
@@ -63,7 +63,7 @@
 **				Prescaler Value			Target Timer Count
 **				1						7999999					7999			-> usable
 **				8						999999					999				-> usable
-**				64						124999					124				-> usable
+**				64						124999					124				-> usable		-> only value fitting for 8 bit
 **				256						31249					30,25			-> uunsable
 **				1024					7811,5					5,8125			-> unusable
 **
@@ -114,11 +114,11 @@ int main (void)
 	CONFIG_OUTPUTS;
 
 	// Part of millis function
-	TCCR1B |= (1 << WGM12);          									// Configure timer 1 for CTC mode
-	TIMSK1 |= (1 << OCIE1A);        									// Enable CTC interrupt
+	TCCR0B |= (1 << WGM02);          									// Configure timer0 for CTC mode
+	TIMSK0 |= (1 << OCIE0A);        									// Enable CTC interrupt
 	sei ();                  											// Enable global interrupts
-	OCR1A = 7999;              											// Set CTC compare value to 1000 Hz at 8 MHz AVR clock , with a prescaler of 1
-	TCCR1B |= (1 << CS10);          									// Start timer at F_CPU /1
+	OCR0A = 124;              											// Set CTC compare value to 1000 Hz at 8 MHz AVR clock , with a prescaler of 64
+	TCCR0B |= (1 << CS01) | (1 << CS00);          						// Start timer at F_CPU /64
 
 	// Part of blink led
 	const unsigned long interval_1 = 1000;								// Alarm-loop (1)
@@ -145,7 +145,7 @@ int main (void)
 				{
 					state = alarm;
 				}				
-				else if (!(BUTTON_PRESSED))
+				else
 				{
 					state = sleep;
 				}
@@ -182,7 +182,7 @@ int main (void)
 }
 
 
-ISR (TIMER1_COMPA_vect)
+ISR (TIMER0_COMPA_vect)
 {
 	millis++;
 }
