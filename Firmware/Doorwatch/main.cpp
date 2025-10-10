@@ -73,7 +73,7 @@
 **				>>> 16 bit Timer
 **				1 - 65535
 **
-**				Using Prescaler Value 1, but 8 and 64 is usable too, also the 8-bit counter!
+**				Using Prescaler Value 64 for 8-bit counter, but 1 and 64 is usable for 16-bit, too!
 **
 **
 **			  Statemachine :
