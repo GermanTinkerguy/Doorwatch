@@ -81,7 +81,7 @@
 
 
 #ifndef F_CPU
-#define F_CPU 8000000UL													// Solution -> Properties -> AVR/GNU C++ Compiler -> Symbols -> Defined symbols
+#define F_CPU 8000000UL
 #endif
 
 
