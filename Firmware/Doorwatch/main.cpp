@@ -1,6 +1,6 @@
 /*
 ** Name		: Doorwatch
-** Version	: v2.3.1
+** Version	: TESTING v2.3.2
 **
 ** Created	: 2024
 ** Updated	: 2025
@@ -9,7 +9,7 @@
 ** uC		: AT90USB162
 ** F_CPU	: 8MHz
 ** Pullups	: Yes (external)
-** Function	: Using a salvaged pcb with an AT90USB162, external crystal and external pullups.
+** Function	: Using a salvaged pcb with an AT90USB162, external crystal oscillator and external pullups.
 **			  There is a reed-contact, so there is no use of a debounce routine.
 **			  Reed-contacts are "bounce free".
 **			  Program for a door watch, which indicates its functionality with a green power on led (PB5).
@@ -18,7 +18,10 @@
 **			  In power down, the green led (PB5) is off.
 **			  Using a pin change interrupt (PCINT4) will wake up the uC.
 **
-** Extras	: Millis-function :
+** Extras	: Statemachine :
+**				As base there is a state machine.
+**
+**			  Millis-function :
 **				Using the timer0, the 8 bit timer copying a millis function like in arduino.
 **
 **				16-bit Timer Calculation
@@ -74,27 +77,21 @@
 **				1 - 65535
 **
 **				Using Prescaler Value 64 for 8-bit counter, but 1 and 64 is usable for 16-bit, too!
-**
-**
-**			  Statemachine :
-**				As base there is a state machine.
 */
 
 
 #ifndef F_CPU
-#define F_CPU 8000000UL													// Solution -> Properties -> AVR/GNU C Compiler -> Symbols -> Defined symbols
+#define F_CPU 8000000UL													// Solution -> Properties -> AVR/GNU C++ Compiler -> Symbols -> Defined symbols
 #endif
 
 
-#include <stdint.h>
 #include <avr/io.h>
-#include <util/delay.h>
 #include <avr/sleep.h>
 #include <avr/interrupt.h>
 
 
 #define CONFIG_INPUTS	{ DDRB = 0x00; DDRC = 0x00; DDRD = 0x00; }		// Configure inputs (0) including all unused pins against floating
-#define BUTTON_PRESSED	( PINB & (1 << PB4) )							// PB4 - button pressed - PCINT4
+#define BUTTON_RELEASED	( PINB & (1 << PB4) )							// PB4 - button released - PCINT4
 
 #define CONFIG_OUTPUTS	{ DDRB |= (1 << PB5) + (1 << PB6); }			// Configure outputs (1)
 #define LED_GN_ON		{ PORTB |= (1 << PB5); }						// PB5 - led green on
@@ -104,8 +101,8 @@
 
 
 volatile unsigned long millis = 0;										// Part of millis function
-
 enum statemachine {start, alarm, sleep};								// Part of statemachine
+
 
 int main (void)
 {
@@ -121,8 +118,8 @@ int main (void)
 	TCCR0B |= (1 << CS01) | (1 << CS00);          						// Start timer at F_CPU /64
 
 	// Part of blink led
-	const unsigned long interval_1 = 1000;								// Alarm-loop (1)
-	unsigned long millis_start_1 = 0;
+	const unsigned long interval = 500;									// Alarm-loop interval
+	unsigned long start_millis = 0;
 
 	// Part of statemachine
 	enum statemachine state = start;
@@ -132,7 +129,7 @@ int main (void)
 	{
 		// Part of millis function
 		cli ();
-		unsigned long millis_current = millis;							// Updates frequently
+		unsigned long current_millis = millis;							// Updates frequently
 		sei ();
 
 		// Statemachine
@@ -141,7 +138,7 @@ int main (void)
 			case start:
 				LED_GN_ON;												// Power on led
 
-				if (BUTTON_PRESSED)
+				if (BUTTON_RELEASED)
 				{
 					state = alarm;
 				}				
@@ -153,12 +150,15 @@ int main (void)
 
 			case alarm:
 				LED_GN_ON;												// Power on led
-				if (millis_current - millis_start_1 >= interval_1)
+				for (uint8_t i = 0; i < 2; i++)							// Toggle led 2 times for a full on/off cycle
 				{
-					millis_start_1 = millis_current;
-					LED_RD_TOGGLE;
+					if (current_millis - start_millis >= interval)
+					{
+						start_millis = current_millis;
+						LED_RD_TOGGLE;
+					}
+					state = start;
 				}
-				state = start;
 				break;
 
 			case sleep:
@@ -167,7 +167,7 @@ int main (void)
 
 				// Pin change interrupt setup
 				cli ();													// Disable status register global interrupt - for programming
-				PCICR |= (1<<PCIE0);									// Enable pin change interrupt PB4 - PCINT4
+				PCICR |= (1 << PCIE0);									// Enable pin change interrupt PB4 - PCINT4
 				PCMSK0 |= (1 << PCINT4);								// Enable pin change interrupt mask PB4 - PCINT4
 				sei ();													// Enable status register global interrupt
 
