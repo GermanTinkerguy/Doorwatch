@@ -90,18 +90,18 @@
 #include <avr/interrupt.h>
 
 
-#define CONFIG_INPUTS	{ DDRB = 0x00; DDRC = 0x00; DDRD = 0x00; }		// Configure inputs (0) including all unused pins against floating
-#define BUTTON_RELEASED	( PINB & (1 << PB4) )							// PB4 - button released - PCINT4
-#define BUTTON_PRESSED	( !(PINB & (1 << PB4)) )						// PB4 - button pressed - PCINT4
+#define CONFIG_INPUTS	{ DDRB = 0x00; DDRC = 0x00; DDRD = 0x00; }			// Configure inputs (0) including all unused pins against floating
+#define BUTTON_RELEASED	( PINB & (1 << PB4) )								// PB4 - button released - PCINT4
+#define BUTTON_PRESSED	( !(PINB & (1 << PB4)) )							// PB4 - button pressed - PCINT4
 
-#define CONFIG_OUTPUTS	{ DDRB |= (1 << PB5) + (1 << PB6); }			// Configure outputs (1)
-#define LED_GN_ON		{ PORTB |= (1 << PB5); }						// PB5 - led green on
-#define LED_GN_OFF		{ PORTB &= ~(1 << PB5); }						// PB5 - led green off
-#define LED_RD_OFF		{ PORTB &= ~(1 << PB6); }						// PB6 - led red off
-#define LED_RD_TOGGLE	{ PORTB ^= (1 << PB6); }						// PB6 - led red toggle
+#define CONFIG_OUTPUTS	{ DDRB |= (1 << PB5) + (1 << PB6); }				// Configure outputs (1)
+#define LED_GN_ON		{ PORTB |= (1 << PB5); }							// PB5 - led green on
+#define LED_GN_OFF		{ PORTB &= ~(1 << PB5); }							// PB5 - led green off
+#define LED_RD_OFF		{ PORTB &= ~(1 << PB6); }							// PB6 - led red off
+#define LED_RD_TOGGLE	{ PORTB ^= (1 << PB6); }							// PB6 - led red toggle
 
 
-volatile unsigned long millis = 0;										// Part of millis function
+volatile unsigned long millis = 0;											// Part of millis function
 
 
 int main (void)
@@ -111,18 +111,18 @@ int main (void)
 	CONFIG_OUTPUTS;
 
 	// Part of millis function
-	TCCR0B |= (1 << WGM02);          									// Configure timer0 for CTC mode
-	TIMSK0 |= (1 << OCIE0A);        									// Enable CTC interrupt
-	sei ();                  											// Enable global interrupts
-	OCR0A = 124;              											// Set CTC compare value to 1000 Hz at 8 MHz AVR clock , with a prescaler of 64
-	TCCR0B |= (1 << CS01) | (1 << CS00);          						// Start timer at F_CPU /64
+	TCCR0B |= (1 << WGM02);          										// Configure timer0 for CTC mode
+	TIMSK0 |= (1 << OCIE0A);        										// Enable CTC interrupt
+	sei ();                  												// Enable global interrupts
+	OCR0A = 124;              												// Set CTC compare value to 1000 Hz at 8 MHz AVR clock , with a prescaler of 64
+	TCCR0B |= (1 << CS01) | (1 << CS00);          							// Start timer at F_CPU /64
 
 	// Part of blink led
-	const unsigned long interval = 500;									// Alarm-loop interval
+	const unsigned long interval = 500;										// Alarm-loop interval
 	unsigned long start_millis = 0;
 
 	// Part of statemachine
-	uint8 time_counter = 0;
+	uint8 time_counter = 0;													// Counting the seconds, how long the door was open
 	
 	// Main loop
 	while (1)
@@ -132,7 +132,7 @@ int main (void)
 
 		// Part of millis function
 		cli ();
-		unsigned long current_millis = millis;							// Updates frequently
+		unsigned long current_millis = millis;								// Updates frequently
 		sei ();
 
 		// Statemachine
@@ -165,6 +165,7 @@ int main (void)
 							start_millis = current_millis;
 							LED_RD_TOGGLE;
 						}
+						
 						state = start;
 					}
 					
