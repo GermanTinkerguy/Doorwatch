@@ -122,6 +122,7 @@ int main (void)
 	unsigned long start_millis = 0;
 
 	// Part of statemachine
+	const unsigned long interval_2 = 1000;									// Door open counter interval
 	uint8 time_counter = 0;													// Counting the seconds, how long the door was open
 	
 	// Main loop
@@ -143,20 +144,22 @@ int main (void)
 				{
 					LED_GN_ON;
 					LED_RD_ON;
-					time_counter = time_counter + 1;
 					
 					state = OPEN;
 				}
 				break;
 
 			case OPEN:
-				if (timer_counter < 5)
+				if (time_counter < 5)
 				{
 					time_counter = time_counter + 1;
-					
+					if (current_millis - start_millis >= interval_2)
+					{
+						start_millis = current_millis;
+					}
 					state = OPEN;
 				}
-				else if (timer_counter >= 5)
+				else if (time_counter >= 5)
 				{
 					for (uint8_t i = 0; i < 2; i++)							// Toggle led 2 times for a full on/off cycle
 					{
@@ -165,9 +168,8 @@ int main (void)
 							start_millis = current_millis;
 							LED_RD_TOGGLE;
 						}
-						
-						state = start;
 					}
+					time_counter = 0;
 					
 					state = ALARM;
 				}
@@ -195,7 +197,6 @@ int main (void)
 				{
 					LED_GN_ON;
 					LED_RD_ON;
-					time_counter = time_counter + 1;
 
 					state = OPEN;
 				}
