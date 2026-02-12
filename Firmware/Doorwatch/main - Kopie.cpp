@@ -92,16 +92,15 @@
 #include <util/delay.h>
 
 
-#define CONFIG_INPUTS	{ DDRC = 0b00000000; }							// Configure inputs (0)
-#define ENABLE_PULLUPS	{ PORTC = 0b00000100; }							// Enable pullups (1)
-#define BUTTON_RELEASED	( PINC & (1 << PC2)	)							// PB4 - button released - PCINT4
+#define CONFIG_INPUTS	{ DDRB = 0x00; DDRC = 0x00; DDRD = 0x00; }		// Configure inputs (0) including all unused pins against floating
+#define BUTTON_RELEASED	( PINB & (1 << PB4) )							// PB4 - button released - PCINT4
 
-#define CONFIG_OUTPUTS	{ DDRC |= (1 << PC5) + (1 << PC6); }			// Configure outputs (1)
-#define LED_GN_ON		{ PORTC |= (1 << PC5); }						// PB5 - led green on
-#define LED_GN_OFF		{ PORTC &= ~(1 << PC5); }						// PB5 - led green off
-#define LED_RD_ON		{ PORTC |= (1 << PC6); }						// PB6 - led red on
-#define LED_RD_OFF		{ PORTC &= ~(1 << PC6); }						// PB6 - led red off
-#define LED_RD_TOGGLE	{ PORTC ^= (1 << PC6); }						// PB6 - led red toggle
+#define CONFIG_OUTPUTS	{ DDRB |= (1 << PB5) + (1 << PB6); }			// Configure outputs (1)
+#define LED_GN_ON		{ PORTB |= (1 << PB5); }						// PB5 - led green on
+#define LED_GN_OFF		{ PORTB &= ~(1 << PB5); }						// PB5 - led green off
+#define LED_RD_ON		{ PORTB |= (1 << PB6); }						// PB6 - led red on
+#define LED_RD_OFF		{ PORTB &= ~(1 << PB6); }						// PB6 - led red off
+#define LED_RD_TOGGLE	{ PORTB ^= (1 << PB6); }						// PB6 - led red toggle
 
 
 // Interrupt service routine for Port B, PCINT0 - PCINT7
@@ -115,9 +114,7 @@ int main (void)
 {
 	// Config i/o pins
 	CONFIG_INPUTS;
-	ENABLE_PULLUPS;
 	CONFIG_OUTPUTS;
-
 
 	// Variables
 	uint8_t counter = 0;								// Variable for counting the clock cycles how long the door was open
@@ -125,15 +122,15 @@ int main (void)
 	// Main loop
 	while (1)
 	{
-		LED_GN_ON;		
-		
-		if ((BUTTON_RELEASED) && (counter < 2))			// If door is open, then...
+		LED_GN_ON;										// Status led
+
+		if ((BUTTON_RELEASED) && (counter < 5))			// If door open, then...
 		{
 			LED_RD_ON;									// Door open indication			
-			counter = counter + 1;						// Counts up for how many times is input "door open" checked
+			counter += 1;								// Counts up for how many times is input "door open" checked
 		}
 
-		else if ((BUTTON_RELEASED) && (counter >= 2))	// If door PB4 is still open, then...
+		if ((BUTTON_RELEASED) && (counter == 2))		// If door PB4 is still open, then...
 		{		
 			for (uint8_t i = 0; i <= 2; i++)			// Loop until it checks input again (2 times)
 			{
@@ -151,7 +148,7 @@ int main (void)
 			// Pin change interrupt setup
 			cli ();										// Disable interrupt for programming
 			PCICR |= (1<<PCIE0);						// Turn on port b
-			PCMSK1 |= (1 << PC2);						// Turn on pin PB4, which is PCINT4
+			PCMSK0 |= (1 << PB4);						// Turn on pin PB4, which is PCINT4
 			sei ();										// Enable interrupt
 
 			// Sleep mode
