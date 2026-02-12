@@ -1,6 +1,6 @@
 /*
 ** Name		: Doorwatch
-** Version	: TESTING v2.3.2
+** Version	: v.1.0.0
 **
 ** Created	: 2024
 ** Updated	: 2025
@@ -8,6 +8,7 @@
 **
 ** uC		: AT90USB162
 ** F_CPU	: 8MHz
+** Fuses	:
 ** Pullups	: Yes (external)
 ** Function	: Using a salvaged pcb with an AT90USB162, external crystal oscillator and external pullups.
 **			  There is a reed-contact, so there is no use of a debounce routine.
@@ -19,7 +20,7 @@
 **			  Using a pin change interrupt (PCINT4) will wake up the uC.
 **
 ** Extras	: Statemachine :
-**				As base there is a state machine.
+**			  I am using the structure of a state machine.
 **
 **			  Millis-function :
 **				Using the timer0, the 8 bit timer copying a millis function like in arduino.
@@ -88,6 +89,7 @@
 #include <avr/io.h>
 #include <avr/sleep.h>
 #include <avr/interrupt.h>
+#include <util/delay.h>
 
 
 #define CONFIG_INPUTS	{ DDRB = 0x00; DDRC = 0x00; DDRD = 0x00; }		// Configure inputs (0) including all unused pins against floating
@@ -96,93 +98,63 @@
 #define CONFIG_OUTPUTS	{ DDRB |= (1 << PB5) + (1 << PB6); }			// Configure outputs (1)
 #define LED_GN_ON		{ PORTB |= (1 << PB5); }						// PB5 - led green on
 #define LED_GN_OFF		{ PORTB &= ~(1 << PB5); }						// PB5 - led green off
+#define LED_RD_ON		{ PORTB |= (1 << PB6); }						// PB6 - led red on
 #define LED_RD_OFF		{ PORTB &= ~(1 << PB6); }						// PB6 - led red off
 #define LED_RD_TOGGLE	{ PORTB ^= (1 << PB6); }						// PB6 - led red toggle
 
 
-volatile unsigned long millis = 0;										// Part of millis function
-enum statemachine {start, alarm, sleep};								// Part of statemachine
+// Interrupt service routine for Port B, PCINT0 - PCINT7
+ISR (PCINT0_vect)
+{	
+}
 
 
+// Main routine
 int main (void)
 {
 	// Config i/o pins
 	CONFIG_INPUTS;
 	CONFIG_OUTPUTS;
 
-	// Part of millis function
-	TCCR0B |= (1 << WGM02);          									// Configure timer0 for CTC mode
-	TIMSK0 |= (1 << OCIE0A);        									// Enable CTC interrupt
-	sei ();                  											// Enable global interrupts
-	OCR0A = 124;              											// Set CTC compare value to 1000 Hz at 8 MHz AVR clock , with a prescaler of 64
-	TCCR0B |= (1 << CS01) | (1 << CS00);          						// Start timer at F_CPU /64
+	// Variables
+	uint8_t counter = 0;								// Variable for counting the clock cycles how long the door was open
 
-	// Part of blink led
-	const unsigned long interval = 500;									// Alarm-loop interval
-	unsigned long start_millis = 0;
-
-	// Part of statemachine
-	enum statemachine state = start;
-	
 	// Main loop
 	while (1)
 	{
-		// Part of millis function
-		cli ();
-		unsigned long current_millis = millis;							// Updates frequently
-		sei ();
+		LED_GN_ON;										// Status led
 
-		// Statemachine
-		switch (state)
+		if ((BUTTON_RELEASED) && (counter < 5))			// If door open, then...
 		{
-			case start:
-				LED_GN_ON;												// Power on led
+			LED_RD_ON;									// Door open indication			
+			counter += 1;								// Counts up for how many times is input "door open" checked
+		}
 
-				if (BUTTON_RELEASED)
-				{
-					state = alarm;
-				}				
-				else
-				{
-					state = sleep;
-				}
-				break;
+		if ((BUTTON_RELEASED) && (counter == 2))		// If door PB4 is still open, then...
+		{		
+			for (uint8_t i = 0; i <= 2; i++)			// Loop until it checks input again (2 times)
+			{
+				LED_RD_ON;								// Door to long open -> alarm
+				_delay_ms (500);
+				LED_RD_OFF;
+				_delay_ms (500);
+			}
+		}
 
-			case alarm:
-				LED_GN_ON;												// Power on led
-				for (uint8_t i = 0; i < 2; i++)							// Toggle led 2 times for a full on/off cycle
-				{
-					if (current_millis - start_millis >= interval)
-					{
-						start_millis = current_millis;
-						LED_RD_TOGGLE;
-					}
-					state = start;
-				}
-				break;
+		if ((!(BUTTON_RELEASED)) && (counter <= 2))		// If the door is closed and wasn't opened before or closed for a while, then...
+		{
+			counter = 0;								// Reset counter
 
-			case sleep:
-				LED_GN_OFF;												// Power on led off for sleeping
-				LED_RD_OFF;												// Turn led off
+			// Pin change interrupt setup
+			cli ();										// Disable interrupt for programming
+			PCICR |= (1<<PCIE0);						// Turn on port b
+			PCMSK0 |= (1 << PB4);						// Turn on pin PB4, which is PCINT4
+			sei ();										// Enable interrupt
 
-				// Pin change interrupt setup
-				cli ();													// Disable status register global interrupt - for programming
-				PCICR |= (1 << PCIE0);									// Enable pin change interrupt PB4 - PCINT4
-				PCMSK0 |= (1 << PCINT4);								// Enable pin change interrupt mask PB4 - PCINT4
-				sei ();													// Enable status register global interrupt
+			// Sleep mode
+			set_sleep_mode (SLEEP_MODE_PWR_DOWN);
 
-				// Sleep mode list
-				set_sleep_mode (SLEEP_MODE_PWR_DOWN);					// Set sleep mode: power down
-				sleep_mode ();											// Activate sleep mode
-			
-				state = start;
-				break;
+			sleep_mode ();								// Start sleep mode
 		}
 	}
-}
-
-
-ISR (TIMER0_COMPA_vect)
-{
-	millis++;
 }
