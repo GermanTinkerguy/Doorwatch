@@ -1,9 +1,9 @@
 /*
 ** Name		: Doorwatch
-** Version	: v.1.1.0
+** Version	: v.1.2.0
 **
 ** Created	: 2024
-** Updated	: 2026
+** Updated	: 13.02.2026
 ** Author	: Oliver
 **
 ** uC		: AT90USB162
@@ -18,6 +18,8 @@
 **			  The uC goes asleep (power down) if the door is closed.
 **			  In power down, the green led (PB5) is off.
 **			  Using a pin change interrupt (PCINT4) will wake up the uC.
+**
+**			 IMPORTANT NOTE: This is not the productivity code for the salvaged PCB. It is for the diy development board
 **
 ** Extras	: Statemachine :
 **			  I am using the structure of a state machine.
@@ -101,6 +103,9 @@
 #define LED_RD_TOGGLE	{ PORTC ^= (1 << PC6); }						// PB6 - led red toggle				<<< ORIGINAL
 
 
+volatile unsigned long millis = 0;										// Part of millis function
+
+
 // Interrupt service routine for Port B, PCINT0 - PCINT7
 ISR (PCINT1_vect)														//									<<< ORIGINAL ISR (PCINT0_vect)
 {	
@@ -114,10 +119,19 @@ int main (void)
 	CONFIG_INPUTS;
 	ENABLE_PULLUPS;
 	CONFIG_OUTPUTS;
+	
+	// Part of millis function
+	TCCR1B |= (1 << WGM12);          									// Configure timer 1 for CTC mode
+	TIMSK1 |= (1 << OCIE1A);        									// Enable CTC interrupt
+	sei ();                  											// Enable global interrupts
+	OCR1A = 7999;              											// Set CTC compare value to 1000 Hz at 8 MHz AVR clock , with a prescaler of 1
+	TCCR1B |= (1 << CS10);          									// Start timer at F_CPU /1
 
-	// Variables
+	// Variables	
+	const unsigned long interval = 500;									// Part of millis function
+	unsigned long millis_start = 0;										// Part of millis function
 	uint8_t counter = 0;												// Variable for counting the clock cycles how long the door was open
-	static enum
+	static enum															// Part of statemachine
 	{
 		STANDBY,
 		OPEN,
@@ -133,7 +147,12 @@ int main (void)
 
 	// Main loop
 	while (1)
-	{
+	{		
+		// Part of millis function
+		cli ();
+		unsigned long millis_current = millis;							// Updates frequently
+		sei ();
+				
 		switch (state)
 			{
 				case STANDBY:
@@ -149,9 +168,14 @@ int main (void)
 				case OPEN:
 					if ((DOOR_OPEN) && (counter <= 5))					// Counting the time until...
 					{
-						_delay_ms (1000);
-						counter = counter + 1;
-
+// 						_delay_ms (1000);
+// 						counter = counter + 1;
+						if (millis_current - millis_start >= (interval * 2))
+						{
+							counter++;
+							millis_start = millis_current;
+						}
+						
 						state = OPEN;
 					}
 					else if ((DOOR_OPEN) && (counter > 5))				// ...5 seconds left, then change to state alarm
@@ -187,8 +211,13 @@ int main (void)
 					}
 					else
 					{
-						LED_RD_TOGGLE;									// Blink routine for alarm-state
-						_delay_ms (500);
+// 						LED_RD_TOGGLE;									// Blink routine for alarm-state
+// 						_delay_ms (500);
+						if (millis_current - millis_start >= interval)
+						{
+							LED_RD_TOGGLE;
+							millis_start = millis_current;
+						}
 
 						state = ALARM;
 					}
@@ -196,4 +225,10 @@ int main (void)
 			}
 	}
 	return 0;
+}
+
+
+ISR (TIMER1_COMPA_vect)
+{
+	millis++;
 }
