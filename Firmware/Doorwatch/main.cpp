@@ -81,23 +81,19 @@
 */
 
 
-#ifndef F_CPU
 #define F_CPU 8000000UL
-#endif
-
 
 #include <avr/io.h>
-#include <avr/sleep.h>
-#include <avr/interrupt.h>
-#include <util/delay.h>
+#include <avr/sleep.h>													// Power down mode
+#include <avr/interrupt.h>												// Pin change interrupt
+#include <util/delay.h>													// Trying to avoid this library with millis in the future
 
+#define CONFIG_INPUTS	{ DDRC = 0x00; }								// Configure inputs (0)				<<< ORIGINAL DDRB
+#define ENABLE_PULLUPS	{ PORTC |= (1 << PC2); }						// Enable pullups (1)				<<< ORIGINAL NO NEED for internal pullups!
+#define CONFIG_OUTPUTS	{ DDRC |= (1 << PC5) + (1 << PC6); }			// Configure outputs (1)			<<< ORIGINAL
 
-#define CONFIG_INPUTS	{ DDRC = 0b00000000; }							// Configure inputs (0)				<<< ORIGINAL DDRB
-#define ENABLE_PULLUPS	{ PORTC = 0b00000100; }							// Enable pullups (1)				<<< ORIGINAL NO NEED for internal pullups!
 #define DOOR_OPEN		( PINC & (1 << PC2)	)							// PB4 - button released - PCINT4	<<< ORIGINAL PINB & (1 << PB4)
 #define DOOR_CLOSE		( !(PINC & (1 << PC2)) )						// PB4 - button pressed - PCINT4	<<< ORIGINAL 
-
-#define CONFIG_OUTPUTS	{ DDRC |= (1 << PC5) + (1 << PC6); }			// Configure outputs (1)			<<< ORIGINAL
 #define LED_GN_ON		{ PORTC |= (1 << PC5); }						// PB5 - led green on				<<< ORIGINAL
 #define LED_GN_OFF		{ PORTC &= ~(1 << PC5); }						// PB5 - led green off				<<< ORIGINAL
 #define LED_RD_ON		{ PORTC |= (1 << PC6); }						// PB6 - led red on					<<< ORIGINAL 
@@ -106,7 +102,7 @@
 
 
 // Interrupt service routine for Port B, PCINT0 - PCINT7
-ISR (PCINT0_vect)												// Possible PCINT1 too! <<< ORIGINAL ISR (PCINT0_vect)
+ISR (PCINT1_vect)														// Possible PCINT1 too! <<< ORIGINAL ISR (PCINT0_vect)
 {	
 }
 
@@ -120,8 +116,16 @@ int main (void)
 	CONFIG_OUTPUTS;
 
 	// Variables
-	static enum {STANDBY, OPEN, COUNTER, ALARM, BLINK} state = STANDBY;
-	uint8_t counter = 0;										// Variable for counting the clock cycles how long the door was open
+	uint8_t counter = 0;												// Variable for counting the clock cycles how long the door was open
+	static enum
+	{
+		STANDBY,
+		OPEN,
+		COUNTER,
+		ALARM,
+		BLINK
+	}
+	state = STANDBY;
 
 	// Main loop
 	while (1)
@@ -131,7 +135,7 @@ int main (void)
 				case STANDBY:
 					if (DOOR_OPEN)
 					{
-						LED_GN_ON;								// Status and debug led
+						LED_GN_ON;										// Status and debug led
 						LED_RD_ON;
 
 						state = OPEN;
@@ -139,14 +143,14 @@ int main (void)
 					break;
 
 				case OPEN:
-					if (counter <= 5 )
+					if (counter <= 5)									// Counting the time until...
 					{
 						_delay_ms (1000);
 						counter = counter + 1;
 
 						state = COUNTER;
 					}
-					else if (counter > 5 )
+					else if (counter > 5)								// ...5 seconds left, then change to state alarm
 					{
 						state = ALARM;
 					}
@@ -156,48 +160,48 @@ int main (void)
 						LED_RD_OFF;
 						counter = 0;
 
-						// Pin change interrupt setup
-						cli ();									// Disable interrupt for programming
-						PCICR |= (1<<PCIE0);					// Turn on port b
-						PCMSK1 |= (1 << PC2);					// Turn on pin PB4, which is PCINT4			<<< ORIGINAL PCMSK0 |= (1 << PB4)
-						sei ();									// Enable interrupt
+						// Init pin change interrupt
+						cli ();											// Disable interrupt for programming
+						PCICR |= (1 << PCIE1);							// Turn on port b							<<< ORIGINAL PCICR |= (1 << PCIE0);			
+						PCMSK1 |= (1 << PC2);							// Turn on pin PB4, which is PCINT4			<<< ORIGINAL PCMSK0 |= (1 << PB4)
+						sei ();											// Enable interrupt
 
-						// Sleep mode
+						// Init sleep mode
 						set_sleep_mode (SLEEP_MODE_PWR_DOWN);
-						sleep_mode ();							// Start sleep mode
+						sleep_mode ();									// Start sleep mode
 
 						state = STANDBY;
 					}
 					break;
 
 				case COUNTER:
-					state = OPEN;								// Loop
+					state = OPEN;										// Loop
 					break;
 
 				case ALARM:
-					if ((DOOR_CLOSE) || counter == 255)			// If maximum of the value is reached, securely go sleepmode
+					if ((DOOR_CLOSE) || (counter == 255))				// ... and if maximum of "uint8_t counter" is reached, securely go sleepmode instead of any kind of error
 					{
 						LED_GN_OFF;
 						LED_RD_OFF;
 
-						// Pin change interrupt setup
-						cli ();									// Disable interrupt for programming
-						PCICR |= (1<<PCIE0);					// Turn on port b
-						PCMSK1 |= (1 << PC2);					// Turn on pin PB4, which is PCINT4			<<< ORIGINAL PCMSK0 |= (1 << PB4)
-						sei ();									// Enable interrupt
+						// Init pin change interrupt
+						cli ();											// Disable interrupt for programming
+						PCICR |= (1 << PCIE0);							// Turn on port b
+						PCMSK1 |= (1 << PC2);							// Turn on pin PB4, which is PCINT4			<<< ORIGINAL PCMSK0 |= (1 << PB4)
+						sei ();											// Enable interrupt
 
-						// Sleep mode
+						// Init sleep mode
 						set_sleep_mode (SLEEP_MODE_PWR_DOWN);
-						sleep_mode ();							// Start sleep mode
+						sleep_mode ();									// Start sleep mode
 
 						state = STANDBY;
 					}
 					else
 					{
-						LED_RD_TOGGLE;
+						LED_RD_TOGGLE;									// Blink routine for alarm-state
 						_delay_ms (500);
 
-						state = BLINK
+						state = BLINK;
 					}
 					break;
 
@@ -243,4 +247,5 @@ int main (void)
 			sleep_mode ();										// Start sleep mode
 		}*/
 	}
+	return 0;
 }
