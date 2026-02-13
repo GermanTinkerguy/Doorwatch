@@ -92,16 +92,17 @@
 #include <util/delay.h>
 
 
-#define CONFIG_INPUTS	{ DDRC = 0b00000000; }							// Configure inputs (0)
-#define ENABLE_PULLUPS	{ PORTC = 0b00000100; }							// Enable pullups (1)
-#define BUTTON_RELEASED	( PINC & (1 << PC2)	)							// PB4 - button released - PCINT4
+#define CONFIG_INPUTS	{ DDRC = 0b00000000; }							// Configure inputs (0)				<<< ORIGINAL DDRB
+#define ENABLE_PULLUPS	{ PORTC = 0b00000100; }							// Enable pullups (1)				<<< ORIGINAL PORTB
+#define BUTTON_RELEASED	( PINC & (1 << PC2)	)							// PB4 - button released - PCINT4	<<< ORIGINAL PINB & (1 << PB4)
+#define BUTTON_PRESSED	( !(PINC & (1 << PC2)) )						// PB4 - button pressed - PCINT4	<<< ORIGINAL 
 
-#define CONFIG_OUTPUTS	{ DDRC |= (1 << PC5) + (1 << PC6); }			// Configure outputs (1)
-#define LED_GN_ON		{ PORTC |= (1 << PC5); }						// PB5 - led green on
-#define LED_GN_OFF		{ PORTC &= ~(1 << PC5); }						// PB5 - led green off
-#define LED_RD_ON		{ PORTC |= (1 << PC6); }						// PB6 - led red on
-#define LED_RD_OFF		{ PORTC &= ~(1 << PC6); }						// PB6 - led red off
-#define LED_RD_TOGGLE	{ PORTC ^= (1 << PC6); }						// PB6 - led red toggle
+#define CONFIG_OUTPUTS	{ DDRC |= (1 << PC5) + (1 << PC6); }			// Configure outputs (1)			<<< ORIGINAL
+#define LED_GN_ON		{ PORTC |= (1 << PC5); }						// PB5 - led green on				<<< ORIGINAL
+#define LED_GN_OFF		{ PORTC &= ~(1 << PC5); }						// PB5 - led green off				<<< ORIGINAL
+#define LED_RD_ON		{ PORTC |= (1 << PC6); }						// PB6 - led red on					<<< ORIGINAL 
+#define LED_RD_OFF		{ PORTC &= ~(1 << PC6); }						// PB6 - led red off				<<< ORIGINAL
+#define LED_RD_TOGGLE	{ PORTC ^= (1 << PC6); }						// PB6 - led red toggle				<<< ORIGINAL
 
 
 // Interrupt service routine for Port B, PCINT0 - PCINT7
@@ -118,46 +119,100 @@ int main (void)
 	ENABLE_PULLUPS;
 	CONFIG_OUTPUTS;
 
-
 	// Variables
-	uint8_t counter = 0;								// Variable for counting the clock cycles how long the door was open
+	static enum {STANDBY, DOOROPEN, ALARM} state = STANDBY;		// Part of statemachine
+	uint8_t counter = 0;										// Variable for counting the clock cycles how long the door was open
 
 	// Main loop
 	while (1)
 	{
-		LED_GN_ON;		
+		switch (state)
+			{
+				case STANDBY:
+					if (BUTTON_RELEASED)
+					{
+						LED_GN_ON;
+						LED_RD_ON;
+						state = DOOROPEN;
+					}
+					break;
+
+				case DOOROPEN:
+					if (counter < 5 )
+					{
+						counter = counter + 1;
+						state = DOOROPEN;
+					}
+					else if (counter >= 5 )
+					{
+						counter = 0;
+						state = ALARM;
+					}
+					else if (BUTTON_PRESSED)
+					{
+						LED_GN_OFF;
+						LED_RD_OFF;
+						state = STANDBY;
+					}
+					break;
+
+				case ALARM:
+					if (BUTTON_PRESSED)
+					{
+						LED_GN_OFF;
+						LED_RD_OFF;
+
+						// Pin change interrupt setup
+						cli ();									// Disable interrupt for programming
+						PCICR |= (1<<PCIE0);					// Turn on port b
+						PCMSK1 |= (1 << PC2);					// Turn on pin PB4, which is PCINT4			<<< ORIGINAL PCMSK0 |= (1 << PB4)
+						sei ();									// Enable interrupt
+
+						// Sleep mode
+						set_sleep_mode (SLEEP_MODE_PWR_DOWN);
+
+						sleep_mode ();							// Start sleep mode
+
+						state = STANDBY;
+					}
+					break;
+			}
+
+
+		/*
+		LED_GN_ON;												// Status led also for debugging
 		
-		if ((BUTTON_RELEASED) && (counter < 2))			// If door is open, then...
+		if ((BUTTON_RELEASED) && (counter < 2))					// If door is open, then...
 		{
-			LED_RD_ON;									// Door open indication			
-			counter = counter + 1;						// Counts up for how many times is input "door open" checked
+			LED_RD_ON;											// Door open indication			
+			counter = counter + 1;								// Counts up for how many times is input "door open" checked
 		}
 
-		else if ((BUTTON_RELEASED) && (counter >= 2))	// If door PB4 is still open, then...
+		else if ((BUTTON_RELEASED) && (counter >= 2))			// If door PB4 is still open, then...
 		{		
-			for (uint8_t i = 0; i <= 2; i++)			// Loop until it checks input again (2 times)
+			for (uint8_t i = 0; i <= 2; i++)					// Loop until it checks input again (2 times)
 			{
-				LED_RD_ON;								// Door to long open -> alarm
+				LED_RD_ON;										// Door to long open -> alarm
 				_delay_ms (500);
 				LED_RD_OFF;
 				_delay_ms (500);
 			}
 		}
 
-		if ((!(BUTTON_RELEASED)) && (counter <= 2))		// If the door is closed and wasn't opened before or closed for a while, then...
+		if (!(BUTTON_RELEASED)) && (counter <= 2))				// If the door is closed and wasn't opened before or closed for a while, then...
 		{
-			counter = 0;								// Reset counter
+			counter = 0;										// Reset counter
 
 			// Pin change interrupt setup
-			cli ();										// Disable interrupt for programming
-			PCICR |= (1<<PCIE0);						// Turn on port b
-			PCMSK1 |= (1 << PC2);						// Turn on pin PB4, which is PCINT4
-			sei ();										// Enable interrupt
+			cli ();												// Disable interrupt for programming
+			PCICR |= (1<<PCIE0);								// Turn on port b
+			PCMSK1 |= (1 << PC2);								// Turn on pin PB4, which is PCINT4
+			sei ();												// Enable interrupt
 
 			// Sleep mode
 			set_sleep_mode (SLEEP_MODE_PWR_DOWN);
 
-			sleep_mode ();								// Start sleep mode
-		}
+			sleep_mode ();										// Start sleep mode
+		}*/
 	}
 }
