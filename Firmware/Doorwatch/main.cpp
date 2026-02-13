@@ -1,6 +1,6 @@
 /*
 ** Name		: Doorwatch
-** Version	: v.1.2.0
+** Version	: v.1.2.1
 **
 ** Created	: 2024
 ** Updated	: 13.02.2026
@@ -221,6 +221,9 @@ int main (void)
 
 						state = ALARM;
 					}
+					break;
+					
+				default:
 					break;
 			}
 	}
