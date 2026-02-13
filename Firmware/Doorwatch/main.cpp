@@ -1,9 +1,9 @@
 /*
 ** Name		: Doorwatch
-** Version	: v.1.0.0
+** Version	: v.1.1.0
 **
 ** Created	: 2024
-** Updated	: 2025
+** Updated	: 2026
 ** Author	: Oliver
 **
 ** uC		: AT90USB162
@@ -93,9 +93,9 @@
 
 
 #define CONFIG_INPUTS	{ DDRC = 0b00000000; }							// Configure inputs (0)				<<< ORIGINAL DDRB
-#define ENABLE_PULLUPS	{ PORTC = 0b00000100; }							// Enable pullups (1)				<<< ORIGINAL PORTB
-#define BUTTON_RELEASED	( PINC & (1 << PC2)	)							// PB4 - button released - PCINT4	<<< ORIGINAL PINB & (1 << PB4)
-#define BUTTON_PRESSED	( !(PINC & (1 << PC2)) )						// PB4 - button pressed - PCINT4	<<< ORIGINAL 
+#define ENABLE_PULLUPS	{ PORTC = 0b00000100; }							// Enable pullups (1)				<<< ORIGINAL NO NEED for internal pullups!
+#define DOOR_OPEN		( PINC & (1 << PC2)	)							// PB4 - button released - PCINT4	<<< ORIGINAL PINB & (1 << PB4)
+#define DOOR_CLOSE		( !(PINC & (1 << PC2)) )						// PB4 - button pressed - PCINT4	<<< ORIGINAL 
 
 #define CONFIG_OUTPUTS	{ DDRC |= (1 << PC5) + (1 << PC6); }			// Configure outputs (1)			<<< ORIGINAL
 #define LED_GN_ON		{ PORTC |= (1 << PC5); }						// PB5 - led green on				<<< ORIGINAL
@@ -106,7 +106,7 @@
 
 
 // Interrupt service routine for Port B, PCINT0 - PCINT7
-ISR (PCINT0_vect)
+ISR (PCINT0_vect)												// Possible PCINT1 too! <<< ORIGINAL ISR (PCINT0_vect)
 {	
 }
 
@@ -120,7 +120,7 @@ int main (void)
 	CONFIG_OUTPUTS;
 
 	// Variables
-	static enum {STANDBY, DOOROPEN, ALARM} state = STANDBY;		// Part of statemachine
+	static enum {STANDBY, OPEN, COUNTER, ALARM, BLINK} state = STANDBY;
 	uint8_t counter = 0;										// Variable for counting the clock cycles how long the door was open
 
 	// Main loop
@@ -129,35 +129,53 @@ int main (void)
 		switch (state)
 			{
 				case STANDBY:
-					if (BUTTON_RELEASED)
+					if (DOOR_OPEN)
 					{
-						LED_GN_ON;
+						LED_GN_ON;								// Status and debug led
 						LED_RD_ON;
-						state = DOOROPEN;
+
+						state = OPEN;
 					}
 					break;
 
-				case DOOROPEN:
-					if (counter < 5 )
+				case OPEN:
+					if (counter <= 5 )
 					{
+						_delay_ms (1000);
 						counter = counter + 1;
-						state = DOOROPEN;
+
+						state = COUNTER;
 					}
-					else if (counter >= 5 )
+					else if (counter > 5 )
 					{
-						counter = 0;
 						state = ALARM;
 					}
-					else if (BUTTON_PRESSED)
+					else if (DOOR_CLOSE)
 					{
 						LED_GN_OFF;
 						LED_RD_OFF;
+						counter = 0;
+
+						// Pin change interrupt setup
+						cli ();									// Disable interrupt for programming
+						PCICR |= (1<<PCIE0);					// Turn on port b
+						PCMSK1 |= (1 << PC2);					// Turn on pin PB4, which is PCINT4			<<< ORIGINAL PCMSK0 |= (1 << PB4)
+						sei ();									// Enable interrupt
+
+						// Sleep mode
+						set_sleep_mode (SLEEP_MODE_PWR_DOWN);
+						sleep_mode ();							// Start sleep mode
+
 						state = STANDBY;
 					}
 					break;
 
+				case COUNTER:
+					state = OPEN;								// Loop
+					break;
+
 				case ALARM:
-					if (BUTTON_PRESSED)
+					if ((DOOR_CLOSE) || counter == 255)			// If maximum of the value is reached, securely go sleepmode
 					{
 						LED_GN_OFF;
 						LED_RD_OFF;
@@ -170,11 +188,21 @@ int main (void)
 
 						// Sleep mode
 						set_sleep_mode (SLEEP_MODE_PWR_DOWN);
-
 						sleep_mode ();							// Start sleep mode
 
 						state = STANDBY;
 					}
+					else
+					{
+						LED_RD_TOGGLE;
+						_delay_ms (500);
+
+						state = BLINK
+					}
+					break;
+
+				case BLINK:
+					state = ALARM;
 					break;
 			}
 
