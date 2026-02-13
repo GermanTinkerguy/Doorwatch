@@ -102,7 +102,7 @@
 
 
 // Interrupt service routine for Port B, PCINT0 - PCINT7
-ISR (PCINT1_vect)														// Possible PCINT1 too! <<< ORIGINAL ISR (PCINT0_vect)
+ISR (PCINT1_vect)														//									<<< ORIGINAL ISR (PCINT0_vect)
 {	
 }
 
@@ -121,11 +121,15 @@ int main (void)
 	{
 		STANDBY,
 		OPEN,
-		COUNTER,
-		ALARM,
-		BLINK
+		ALARM
 	}
 	state = STANDBY;
+	
+	// Init pin change interrupt
+	cli ();																// Disable interrupt for programming
+	PCICR |= (1 << PCIE1);												// Turn on port b							<<< ORIGINAL PCICR |= (1 << PCIE0);
+	PCMSK1 |= (1 << PCINT11);											// Turn on pin PB4, which is PCINT4			<<< ORIGINAL PCMSK0 |= (1 << PB4)
+	sei ();																// Enable interrupt
 
 	// Main loop
 	while (1)
@@ -143,14 +147,14 @@ int main (void)
 					break;
 
 				case OPEN:
-					if (counter <= 5)									// Counting the time until...
+					if ((DOOR_OPEN) && (counter <= 5))					// Counting the time until...
 					{
 						_delay_ms (1000);
 						counter = counter + 1;
 
-						state = COUNTER;
+						state = OPEN;
 					}
-					else if (counter > 5)								// ...5 seconds left, then change to state alarm
+					else if ((DOOR_OPEN) && (counter > 5))				// ...5 seconds left, then change to state alarm
 					{
 						state = ALARM;
 					}
@@ -160,12 +164,6 @@ int main (void)
 						LED_RD_OFF;
 						counter = 0;
 
-						// Init pin change interrupt
-						cli ();											// Disable interrupt for programming
-						PCICR |= (1 << PCIE1);							// Turn on port b							<<< ORIGINAL PCICR |= (1 << PCIE0);			
-						PCMSK1 |= (1 << PC2);							// Turn on pin PB4, which is PCINT4			<<< ORIGINAL PCMSK0 |= (1 << PB4)
-						sei ();											// Enable interrupt
-
 						// Init sleep mode
 						set_sleep_mode (SLEEP_MODE_PWR_DOWN);
 						sleep_mode ();									// Start sleep mode
@@ -174,21 +172,12 @@ int main (void)
 					}
 					break;
 
-				case COUNTER:
-					state = OPEN;										// Loop
-					break;
-
-				case ALARM:
+ 				case ALARM:
 					if ((DOOR_CLOSE) || (counter == 255))				// ... and if maximum of "uint8_t counter" is reached, securely go sleepmode instead of any kind of error
 					{
 						LED_GN_OFF;
 						LED_RD_OFF;
-
-						// Init pin change interrupt
-						cli ();											// Disable interrupt for programming
-						PCICR |= (1 << PCIE0);							// Turn on port b
-						PCMSK1 |= (1 << PC2);							// Turn on pin PB4, which is PCINT4			<<< ORIGINAL PCMSK0 |= (1 << PB4)
-						sei ();											// Enable interrupt
+						counter = 0;
 
 						// Init sleep mode
 						set_sleep_mode (SLEEP_MODE_PWR_DOWN);
@@ -201,51 +190,10 @@ int main (void)
 						LED_RD_TOGGLE;									// Blink routine for alarm-state
 						_delay_ms (500);
 
-						state = BLINK;
+						state = ALARM;
 					}
 					break;
-
-				case BLINK:
-					state = ALARM;
-					break;
 			}
-
-
-		/*
-		LED_GN_ON;												// Status led also for debugging
-		
-		if ((BUTTON_RELEASED) && (counter < 2))					// If door is open, then...
-		{
-			LED_RD_ON;											// Door open indication			
-			counter = counter + 1;								// Counts up for how many times is input "door open" checked
-		}
-
-		else if ((BUTTON_RELEASED) && (counter >= 2))			// If door PB4 is still open, then...
-		{		
-			for (uint8_t i = 0; i <= 2; i++)					// Loop until it checks input again (2 times)
-			{
-				LED_RD_ON;										// Door to long open -> alarm
-				_delay_ms (500);
-				LED_RD_OFF;
-				_delay_ms (500);
-			}
-		}
-
-		if (!(BUTTON_RELEASED)) && (counter <= 2))				// If the door is closed and wasn't opened before or closed for a while, then...
-		{
-			counter = 0;										// Reset counter
-
-			// Pin change interrupt setup
-			cli ();												// Disable interrupt for programming
-			PCICR |= (1<<PCIE0);								// Turn on port b
-			PCMSK1 |= (1 << PC2);								// Turn on pin PB4, which is PCINT4
-			sei ();												// Enable interrupt
-
-			// Sleep mode
-			set_sleep_mode (SLEEP_MODE_PWR_DOWN);
-
-			sleep_mode ();										// Start sleep mode
-		}*/
 	}
 	return 0;
 }

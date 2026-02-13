@@ -1,9 +1,9 @@
 /*
 ** Name		: Doorwatch
-** Version	: v.1.0.0
+** Version	: v.1.1.0
 **
 ** Created	: 2024
-** Updated	: 2025
+** Updated	: 2026
 ** Author	: Oliver
 **
 ** uC		: AT90USB162
@@ -81,30 +81,28 @@
 */
 
 
-#ifndef F_CPU
 #define F_CPU 8000000UL
-#endif
-
 
 #include <avr/io.h>
-#include <avr/sleep.h>
-#include <avr/interrupt.h>
-#include <util/delay.h>
+#include <avr/sleep.h>													// Power down mode
+#include <avr/interrupt.h>												// Pin change interrupt
+#include <util/delay.h>													// Trying to avoid this library with millis in the future
 
+#define CONFIG_INPUTS	{ DDRC = 0x00; }								// Configure inputs (0)				<<< ORIGINAL DDRB
+#define ENABLE_PULLUPS	{ PORTC |= (1 << PC2); }						// Enable pullups (1)				<<< ORIGINAL NO NEED for internal pullups!
+#define CONFIG_OUTPUTS	{ DDRC |= (1 << PC5) + (1 << PC6); }			// Configure outputs (1)			<<< ORIGINAL
 
-#define CONFIG_INPUTS	{ DDRB = 0x00; DDRC = 0x00; DDRD = 0x00; }		// Configure inputs (0) including all unused pins against floating
-#define BUTTON_RELEASED	( PINB & (1 << PB4) )							// PB4 - button released - PCINT4
-
-#define CONFIG_OUTPUTS	{ DDRB |= (1 << PB5) + (1 << PB6); }			// Configure outputs (1)
-#define LED_GN_ON		{ PORTB |= (1 << PB5); }						// PB5 - led green on
-#define LED_GN_OFF		{ PORTB &= ~(1 << PB5); }						// PB5 - led green off
-#define LED_RD_ON		{ PORTB |= (1 << PB6); }						// PB6 - led red on
-#define LED_RD_OFF		{ PORTB &= ~(1 << PB6); }						// PB6 - led red off
-#define LED_RD_TOGGLE	{ PORTB ^= (1 << PB6); }						// PB6 - led red toggle
+#define DOOR_OPEN		( PINC & (1 << PC2)	)							// PB4 - button released - PCINT4	<<< ORIGINAL PINB & (1 << PB4)
+#define DOOR_CLOSE		( !(PINC & (1 << PC2)) )						// PB4 - button pressed - PCINT4	<<< ORIGINAL 
+#define LED_GN_ON		{ PORTC |= (1 << PC5); }						// PB5 - led green on				<<< ORIGINAL
+#define LED_GN_OFF		{ PORTC &= ~(1 << PC5); }						// PB5 - led green off				<<< ORIGINAL
+#define LED_RD_ON		{ PORTC |= (1 << PC6); }						// PB6 - led red on					<<< ORIGINAL 
+#define LED_RD_OFF		{ PORTC &= ~(1 << PC6); }						// PB6 - led red off				<<< ORIGINAL
+#define LED_RD_TOGGLE	{ PORTC ^= (1 << PC6); }						// PB6 - led red toggle				<<< ORIGINAL
 
 
 // Interrupt service routine for Port B, PCINT0 - PCINT7
-ISR (PCINT0_vect)
+ISR (PCINT1_vect)														//									<<< ORIGINAL ISR (PCINT0_vect)
 {	
 }
 
@@ -114,47 +112,88 @@ int main (void)
 {
 	// Config i/o pins
 	CONFIG_INPUTS;
+	ENABLE_PULLUPS;
 	CONFIG_OUTPUTS;
 
 	// Variables
-	uint8_t counter = 0;								// Variable for counting the clock cycles how long the door was open
+	uint8_t counter = 0;												// Variable for counting the clock cycles how long the door was open
+	static enum
+	{
+		STANDBY,
+		OPEN,
+		ALARM
+	}
+	state = STANDBY;
+	
+	// Init pin change interrupt
+	cli ();																// Disable interrupt for programming
+	PCICR |= (1 << PCIE1);												// Turn on port b							<<< ORIGINAL PCICR |= (1 << PCIE0);
+	PCMSK1 |= (1 << PCINT11);											// Turn on pin PB4, which is PCINT4			<<< ORIGINAL PCMSK0 |= (1 << PB4)
+	sei ();																// Enable interrupt
 
 	// Main loop
 	while (1)
 	{
-		LED_GN_ON;										// Status led
-
-		if ((BUTTON_RELEASED) && (counter < 5))			// If door open, then...
-		{
-			LED_RD_ON;									// Door open indication			
-			counter += 1;								// Counts up for how many times is input "door open" checked
-		}
-
-		if ((BUTTON_RELEASED) && (counter == 2))		// If door PB4 is still open, then...
-		{		
-			for (uint8_t i = 0; i <= 2; i++)			// Loop until it checks input again (2 times)
+		switch (state)
 			{
-				LED_RD_ON;								// Door to long open -> alarm
-				_delay_ms (500);
-				LED_RD_OFF;
-				_delay_ms (500);
+				case STANDBY:
+					if (DOOR_OPEN)
+					{
+						LED_GN_ON;										// Status and debug led
+						LED_RD_ON;
+
+						state = OPEN;
+					}
+					break;
+
+				case OPEN:
+					if ((DOOR_OPEN) && (counter <= 5))					// Counting the time until...
+					{
+						_delay_ms (1000);
+						counter = counter + 1;
+
+						state = OPEN;
+					}
+					else if ((DOOR_OPEN) && (counter > 5))				// ...5 seconds left, then change to state alarm
+					{
+						state = ALARM;
+					}
+					else if (DOOR_CLOSE)
+					{
+						LED_GN_OFF;
+						LED_RD_OFF;
+						counter = 0;
+
+						// Init sleep mode
+						set_sleep_mode (SLEEP_MODE_PWR_DOWN);
+						sleep_mode ();									// Start sleep mode
+
+						state = STANDBY;
+					}
+					break;
+
+ 				case ALARM:
+					if ((DOOR_CLOSE) || (counter == 255))				// ... and if maximum of "uint8_t counter" is reached, securely go sleepmode instead of any kind of error
+					{
+						LED_GN_OFF;
+						LED_RD_OFF;
+						counter = 0;
+
+						// Init sleep mode
+						set_sleep_mode (SLEEP_MODE_PWR_DOWN);
+						sleep_mode ();									// Start sleep mode
+
+						state = STANDBY;
+					}
+					else
+					{
+						LED_RD_TOGGLE;									// Blink routine for alarm-state
+						_delay_ms (500);
+
+						state = ALARM;
+					}
+					break;
 			}
-		}
-
-		if ((!(BUTTON_RELEASED)) && (counter <= 2))		// If the door is closed and wasn't opened before or closed for a while, then...
-		{
-			counter = 0;								// Reset counter
-
-			// Pin change interrupt setup
-			cli ();										// Disable interrupt for programming
-			PCICR |= (1<<PCIE0);						// Turn on port b
-			PCMSK0 |= (1 << PB4);						// Turn on pin PB4, which is PCINT4
-			sei ();										// Enable interrupt
-
-			// Sleep mode
-			set_sleep_mode (SLEEP_MODE_PWR_DOWN);
-
-			sleep_mode ();								// Start sleep mode
-		}
 	}
+	return 0;
 }
